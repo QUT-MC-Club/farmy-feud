@@ -60,6 +60,7 @@ public final class FarmSheepEntity extends SheepEntity {
 
     @Override
     protected void mobTick() {
+        this.game.tickSheep(this);
     }
 
     @Override

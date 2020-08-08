@@ -37,6 +37,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 
@@ -265,9 +266,9 @@ public final class FfActive {
             return;
         }
 
-        Vec3d spawnPos = centerSpawn.getCenter();
-
         FarmSheepEntity entity = new FarmSheepEntity(this.world, this);
+
+        Vec3d spawnPos = centerSpawn.getCenter();
         entity.refreshPositionAndAngles(spawnPos.x, spawnPos.y + 0.5, spawnPos.z, 0.0F, 0.0F);
 
         entity.setOwnerTeam(null, centerSpawn);
@@ -319,6 +320,19 @@ public final class FfActive {
         return participant.carryStack.tryAdd(player, sheep);
     }
 
+    public void tickSheep(FarmSheepEntity sheep) {
+        if (this.world.getTime() % 20 == 0) {
+            BlockPos sheepPos = sheep.getBlockPos();
+            for (BlockBounds region : this.map.getIllegalSheepRegions()) {
+                if (region.contains(sheepPos)) {
+                    sheep.remove();
+
+                    this.spawnSheep();
+                }
+            }
+        }
+    }
+
     private void tickSheepStack(ServerPlayerEntity player, FfParticipant participant) {
         if (participant.carryStack.isEmpty()) {
             return;
@@ -343,14 +357,7 @@ public final class FfActive {
     }
 
     private boolean onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
-        FfParticipant participant = this.getParticipant(player);
-        if (participant != null) {
-            this.spawnLogic.resetPlayer(player, GameMode.SPECTATOR);
-            participant.startRespawn(this.world.getTime());
-
-            player.sendMessage(new LiteralText("You will respawn in " + RESPAWN_SECONDS + " seconds..").formatted(Formatting.BOLD), false);
-        }
-
+        this.respawnPlayer(player);
         return true;
     }
 
@@ -369,14 +376,29 @@ public final class FfActive {
             participant.carryStack.dropAll(player);
         }
 
+        if (!player.isSpectator() && source == DamageSource.LAVA) {
+            this.respawnPlayer(player);
+            return true;
+        }
+
         return false;
+    }
+
+    private void respawnPlayer(ServerPlayerEntity player) {
+        FfParticipant participant = this.getParticipant(player);
+        if (participant != null) {
+            participant.startRespawn(this.world.getTime());
+            this.spawnLogic.resetPlayer(player, GameMode.SPECTATOR);
+
+            player.sendMessage(new LiteralText("You will respawn in " + RESPAWN_SECONDS + " seconds..").formatted(Formatting.BOLD), false);
+        }
     }
 
     private void spawnParticipant(ServerPlayerEntity player, FfParticipant participant) {
         GameTeam team = participant.team;
 
-        this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
         this.spawnLogic.spawnPlayerAtTeam(player, team);
+        this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
 
         player.inventory.insertStack(0, SWORD.build());
         player.inventory.insertStack(1, AXE.build());
@@ -411,8 +433,8 @@ public final class FfActive {
             this.broadcastMessage(message);
         }
     }
-
     // TODO: extract common broadcast utils into plasmid
+
     private void broadcastMessage(Text message) {
         for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
             player.sendMessage(message, false);

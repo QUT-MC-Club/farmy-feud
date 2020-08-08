@@ -8,6 +8,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +18,8 @@ public final class FfMap {
 
     private BlockBounds centerSpawn;
     private final Map<GameTeam, TeamRegions> teamRegions = new HashMap<>();
+
+    private Collection<BlockBounds> illegalSheepRegions = new ArrayList<>();
 
     public FfMap(MapTemplate template) {
         this.template = template;
@@ -29,6 +33,10 @@ public final class FfMap {
         this.teamRegions.put(team, regions);
     }
 
+    public void addIllegalSheepRegion(BlockBounds bounds) {
+        this.illegalSheepRegions.add(bounds);
+    }
+
     @Nullable
     public BlockBounds getCenterSpawn() {
         return this.centerSpawn;
@@ -37,6 +45,10 @@ public final class FfMap {
     @Nullable
     public TeamRegions getTeamRegions(GameTeam team) {
         return this.teamRegions.get(team);
+    }
+
+    public Collection<BlockBounds> getIllegalSheepRegions() {
+        return this.illegalSheepRegions;
     }
 
     public ChunkGenerator createGenerator() {

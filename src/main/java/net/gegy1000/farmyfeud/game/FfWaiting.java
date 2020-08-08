@@ -86,7 +86,7 @@ public final class FfWaiting {
     }
 
     private void spawnPlayer(ServerPlayerEntity player) {
-        this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
         this.spawnLogic.spawnPlayerAtCenter(player);
+        this.spawnLogic.resetPlayer(player, GameMode.ADVENTURE);
     }
 }

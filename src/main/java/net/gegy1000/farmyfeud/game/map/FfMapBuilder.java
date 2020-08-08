@@ -33,6 +33,8 @@ public final class FfMapBuilder {
     private void addGlobalRegions(FfMap map, MapTemplate template) {
         BlockBounds sheepSpawn = template.getFirstRegion("sheep_spawn");
         map.setCenterSpawn(sheepSpawn);
+
+        template.getRegions("sheep_die").forEach(map::addIllegalSheepRegion);
     }
 
     private void addTeamRegions(FfMap map, MapTemplate template) {
