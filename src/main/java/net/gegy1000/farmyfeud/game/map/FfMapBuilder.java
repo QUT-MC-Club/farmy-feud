@@ -6,6 +6,7 @@ import net.gegy1000.plasmid.game.map.template.MapTemplate;
 import net.gegy1000.plasmid.game.map.template.MapTemplateSerializer;
 import net.gegy1000.plasmid.game.player.GameTeam;
 import net.gegy1000.plasmid.util.BlockBounds;
+import net.minecraft.world.biome.Biomes;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -22,6 +23,8 @@ public final class FfMapBuilder {
 
             this.addGlobalRegions(map, template);
             this.addTeamRegions(map, template);
+
+            template.setBiome(Biomes.PLAINS);
 
             return map;
         });
