@@ -10,10 +10,6 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
-minecraft {
-	accessWidener = file("src/main/resources/farmy_feud.accesswidener")
-}
-
 repositories {
 	maven { url = "https://jitpack.io/" }
 	maven { url = "https://maven.gegy.dev/" }
