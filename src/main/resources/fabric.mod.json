@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "farmy_feud",
+  "version": "${version}",
+  "name": "Farmy Feud",
+  "description": "Fabric minigame where you steal sheep from the neighbouring farms",
+  "authors": ["gegy1000"],
+  "license": "LGPLv3",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["net.gegy1000.farmyfeud.FarmyFeud"]
+  },
+  "accessWidener": "farmy_feud.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.8.9",
+    "fabric": "*",
+    "minecraft": "1.16.x",
+    "plasmid": "0.1.x"
+  }
+}
