@@ -3,11 +3,13 @@ package net.gegy1000.farmyfeud.entity;
 import net.gegy1000.farmyfeud.game.active.FfActive;
 import net.gegy1000.plasmid.game.player.GameTeam;
 import net.gegy1000.plasmid.util.BlockBounds;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.ai.goal.LookAroundGoal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
 import net.minecraft.entity.ai.goal.SwimGoal;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.passive.SheepEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.LiteralText;
@@ -50,6 +52,11 @@ public final class FarmSheepEntity extends SheepEntity {
         }
     }
 
+    @Nullable
+    public BlockBounds getHome() {
+        return this.home;
+    }
+
     @Override
     protected void initGoals() {
         this.goalSelector.add(0, new SwimGoal(this));
@@ -61,6 +68,16 @@ public final class FarmSheepEntity extends SheepEntity {
     @Override
     protected void mobTick() {
         this.game.tickSheep(this);
+    }
+
+    @Override
+    public boolean damage(DamageSource source, float amount) {
+        Entity vehicle = this.getVehicle();
+        if (vehicle != null && source.getSource() != null) {
+            return vehicle.damage(source, amount);
+        }
+
+        return super.damage(source, amount);
     }
 
     @Override

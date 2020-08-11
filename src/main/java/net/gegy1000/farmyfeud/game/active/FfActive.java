@@ -32,6 +32,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
@@ -113,6 +114,7 @@ public final class FfActive {
             game.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
             game.setRule(GameRule.ALLOW_PORTALS, RuleResult.DENY);
             game.setRule(GameRule.ALLOW_PVP, RuleResult.ALLOW);
+            game.setRule(GameRule.FALL_DAMAGE, RuleResult.ALLOW);
             game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
             game.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
 
@@ -148,6 +150,13 @@ public final class FfActive {
     private void close() {
         this.scoreboard.close();
         this.timerBar.close();
+
+        for (FfParticipant participant : this.participants.values()) {
+            ServerPlayerEntity player = participant.player();
+            if (player != null) {
+                participant.carryStack.dropAll(player);
+            }
+        }
     }
 
     private void addPlayer(ServerPlayerEntity player) {
@@ -321,13 +330,24 @@ public final class FfActive {
     }
 
     public void tickSheep(FarmSheepEntity sheep) {
+        if (sheep.hasVehicle()) {
+            return;
+        }
+
         if (this.world.getTime() % 20 == 0) {
             BlockPos sheepPos = sheep.getBlockPos();
+
             for (BlockBounds region : this.map.getIllegalSheepRegions()) {
                 if (region.contains(sheepPos)) {
-                    sheep.remove();
+                    BlockBounds home = sheep.getHome();
+                    if (home == null) {
+                        home = this.map.getCenterSpawn();
+                    }
 
-                    this.spawnSheep();
+                    Vec3d spawn = home.getCenter();
+
+                    sheep.detach();
+                    sheep.teleport(spawn.x, spawn.y, spawn.z);
                 }
             }
         }
@@ -357,6 +377,17 @@ public final class FfActive {
     }
 
     private boolean onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+        MutableText message;
+
+        Entity attackerEntity = source.getAttacker();
+        if (attackerEntity instanceof ServerPlayerEntity) {
+            message = player.getDisplayName().shallowCopy().append(" was killed by ").append(attackerEntity.getDisplayName());
+        } else {
+            message = player.getDisplayName().shallowCopy().append(" died");
+        }
+
+        this.broadcastMessage(message.formatted(Formatting.GRAY));
+
         this.respawnPlayer(player);
         return true;
     }
