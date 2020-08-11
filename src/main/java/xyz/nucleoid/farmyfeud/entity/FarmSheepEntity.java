@@ -1,8 +1,8 @@
-package net.gegy1000.farmyfeud.entity;
+package xyz.nucleoid.farmyfeud.entity;
 
-import net.gegy1000.farmyfeud.game.active.FfActive;
-import net.gegy1000.plasmid.game.player.GameTeam;
-import net.gegy1000.plasmid.util.BlockBounds;
+import xyz.nucleoid.farmyfeud.game.active.FfActive;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.util.BlockBounds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.Goal;

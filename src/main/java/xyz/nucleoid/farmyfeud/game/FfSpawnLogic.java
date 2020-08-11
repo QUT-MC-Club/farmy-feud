@@ -1,8 +1,8 @@
-package net.gegy1000.farmyfeud.game;
+package xyz.nucleoid.farmyfeud.game;
 
-import net.gegy1000.farmyfeud.game.map.FfMap;
-import net.gegy1000.plasmid.game.player.GameTeam;
-import net.gegy1000.plasmid.util.BlockBounds;
+import xyz.nucleoid.farmyfeud.game.map.FfMap;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.util.BlockBounds;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;

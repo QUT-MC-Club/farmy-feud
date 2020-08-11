@@ -1,4 +1,4 @@
-package net.gegy1000.farmyfeud.game.active;
+package xyz.nucleoid.farmyfeud.game.active;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributeInstance;

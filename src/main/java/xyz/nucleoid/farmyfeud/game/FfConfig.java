@@ -1,10 +1,10 @@
-package net.gegy1000.farmyfeud.game;
+package xyz.nucleoid.farmyfeud.game;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.gegy1000.plasmid.game.config.GameConfig;
-import net.gegy1000.plasmid.game.config.PlayerConfig;
-import net.gegy1000.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.game.config.GameConfig;
+import xyz.nucleoid.plasmid.game.config.PlayerConfig;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
 import net.minecraft.util.Identifier;
 
 import java.util.List;

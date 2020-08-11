@@ -1,7 +1,7 @@
-package net.gegy1000.farmyfeud.game.active;
+package xyz.nucleoid.farmyfeud.game.active;
 
-import net.gegy1000.farmyfeud.FarmyFeud;
-import net.gegy1000.plasmid.game.player.GameTeam;
+import xyz.nucleoid.farmyfeud.FarmyFeud;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
 import net.minecraft.scoreboard.AbstractTeam;
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ScoreboardObjective;

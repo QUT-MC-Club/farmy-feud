@@ -1,11 +1,11 @@
-package net.gegy1000.farmyfeud.game.map;
+package xyz.nucleoid.farmyfeud.game.map;
 
-import net.gegy1000.farmyfeud.FarmyFeud;
-import net.gegy1000.farmyfeud.game.FfConfig;
-import net.gegy1000.plasmid.game.map.template.MapTemplate;
-import net.gegy1000.plasmid.game.map.template.MapTemplateSerializer;
-import net.gegy1000.plasmid.game.player.GameTeam;
-import net.gegy1000.plasmid.util.BlockBounds;
+import xyz.nucleoid.farmyfeud.FarmyFeud;
+import xyz.nucleoid.farmyfeud.game.FfConfig;
+import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.game.map.template.MapTemplateSerializer;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.util.BlockBounds;
 import net.minecraft.world.biome.Biomes;
 
 import java.util.concurrent.CompletableFuture;

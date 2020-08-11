@@ -1,6 +1,6 @@
-package net.gegy1000.farmyfeud.game.active;
+package xyz.nucleoid.farmyfeud.game.active;
 
-import net.gegy1000.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
 
 import java.util.HashSet;
 import java.util.Set;

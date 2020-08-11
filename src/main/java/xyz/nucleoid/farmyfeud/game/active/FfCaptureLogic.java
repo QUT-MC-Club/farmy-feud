@@ -1,9 +1,9 @@
-package net.gegy1000.farmyfeud.game.active;
+package xyz.nucleoid.farmyfeud.game.active;
 
-import net.gegy1000.farmyfeud.entity.FarmSheepEntity;
-import net.gegy1000.farmyfeud.game.map.FfMap;
-import net.gegy1000.plasmid.game.player.GameTeam;
-import net.gegy1000.plasmid.util.BlockBounds;
+import xyz.nucleoid.farmyfeud.entity.FarmSheepEntity;
+import xyz.nucleoid.farmyfeud.game.map.FfMap;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.util.BlockBounds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.FireworkRocketEntity;
 import net.minecraft.item.FireworkItem;

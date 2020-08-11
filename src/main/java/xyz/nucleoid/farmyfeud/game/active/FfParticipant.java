@@ -1,7 +1,7 @@
-package net.gegy1000.farmyfeud.game.active;
+package xyz.nucleoid.farmyfeud.game.active;
 
-import net.gegy1000.farmyfeud.entity.FarmSheepEntity;
-import net.gegy1000.plasmid.game.player.GameTeam;
+import xyz.nucleoid.farmyfeud.entity.FarmSheepEntity;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 
