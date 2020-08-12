@@ -1,12 +1,12 @@
 package xyz.nucleoid.farmyfeud.game.map;
 
+import net.minecraft.world.biome.BuiltinBiomes;
 import xyz.nucleoid.farmyfeud.FarmyFeud;
 import xyz.nucleoid.farmyfeud.game.FfConfig;
 import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
 import xyz.nucleoid.plasmid.game.map.template.MapTemplateSerializer;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.util.BlockBounds;
-import net.minecraft.world.biome.Biomes;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -18,13 +18,13 @@ public final class FfMapBuilder {
     }
 
     public CompletableFuture<FfMap> create() {
-        return MapTemplateSerializer.load(this.config.map).thenApply(template -> {
+        return MapTemplateSerializer.INSTANCE.load(this.config.map).thenApply(template -> {
             FfMap map = new FfMap(template);
 
             this.addGlobalRegions(map, template);
             this.addTeamRegions(map, template);
 
-            template.setBiome(Biomes.PLAINS);
+            template.setBiome(BuiltinBiomes.PLAINS);
 
             return map;
         });

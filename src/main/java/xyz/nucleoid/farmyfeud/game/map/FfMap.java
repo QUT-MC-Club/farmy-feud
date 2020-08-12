@@ -1,5 +1,6 @@
 package xyz.nucleoid.farmyfeud.game.map;
 
+import net.minecraft.server.MinecraftServer;
 import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
 import xyz.nucleoid.plasmid.game.map.template.TemplateChunkGenerator;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
@@ -51,8 +52,8 @@ public final class FfMap {
         return this.illegalSheepRegions;
     }
 
-    public ChunkGenerator createGenerator() {
-        return new TemplateChunkGenerator(this.template, BlockPos.ORIGIN);
+    public ChunkGenerator createGenerator(MinecraftServer server) {
+        return new TemplateChunkGenerator(server, this.template, BlockPos.ORIGIN);
     }
 
     public static class TeamRegions {

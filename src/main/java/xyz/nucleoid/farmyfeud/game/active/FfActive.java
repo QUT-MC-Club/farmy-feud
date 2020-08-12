@@ -110,7 +110,7 @@ public final class FfActive {
     public static void open(GameWorld gameWorld, FfMap map, FfConfig config) {
         FfActive active = new FfActive(gameWorld, map, config);
 
-        gameWorld.newGame(game -> {
+        gameWorld.openGame(game -> {
             game.setRule(GameRule.CRAFTING, RuleResult.DENY);
             game.setRule(GameRule.PORTALS, RuleResult.DENY);
             game.setRule(GameRule.PVP, RuleResult.ALLOW);

@@ -41,13 +41,13 @@ public final class FfWaiting {
     public static CompletableFuture<Void> open(MinecraftServer server, FfConfig config) {
         return new FfMapBuilder(config).create().thenAccept(map -> {
             BubbleWorldConfig worldConfig = new BubbleWorldConfig()
-                    .setGenerator(map.createGenerator())
+                    .setGenerator(map.createGenerator(server))
                     .setDefaultGameMode(GameMode.SPECTATOR);
             GameWorld gameWorld = GameWorld.open(server, worldConfig);
 
             FfWaiting waiting = new FfWaiting(gameWorld, map, config);
 
-            gameWorld.newGame(game -> {
+            gameWorld.openGame(game -> {
                 game.setRule(GameRule.CRAFTING, RuleResult.DENY);
                 game.setRule(GameRule.PORTALS, RuleResult.DENY);
                 game.setRule(GameRule.PVP, RuleResult.DENY);
