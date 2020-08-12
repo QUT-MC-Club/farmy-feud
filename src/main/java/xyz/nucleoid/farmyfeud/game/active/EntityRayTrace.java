@@ -30,7 +30,7 @@ public final class EntityRayTrace {
         Entity hitEntity = null;
         Vec3d hitPoint = null;
 
-        for (Entity entity : world.getEntities(sourceEntity, testBox, predicate)) {
+        for (Entity entity : world.getOtherEntities(sourceEntity, testBox, predicate)) {
             Box targetBox = entity.getBoundingBox().expand(Math.max(entity.getTargetingMargin(), margin));
 
             Optional<Vec3d> traceResult = targetBox.rayTrace(origin, target);

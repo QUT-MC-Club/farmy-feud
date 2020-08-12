@@ -26,7 +26,6 @@ public final class FfSpawnLogic {
         player.fallDistance = 0.0F;
         player.setGameMode(gameMode);
         player.setFireTicks(0);
-        player.inLava = false;
     }
 
     public void spawnPlayerAtCenter(ServerPlayerEntity player) {

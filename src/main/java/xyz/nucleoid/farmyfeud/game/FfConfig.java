@@ -2,14 +2,13 @@ package xyz.nucleoid.farmyfeud.game;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import xyz.nucleoid.plasmid.game.config.GameConfig;
+import net.minecraft.util.Identifier;
 import xyz.nucleoid.plasmid.game.config.PlayerConfig;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
-import net.minecraft.util.Identifier;
 
 import java.util.List;
 
-public final class FfConfig implements GameConfig {
+public final class FfConfig {
     public static final Codec<FfConfig> CODEC = RecordCodecBuilder.create(instance -> {
         return instance.group(
                 Identifier.CODEC.fieldOf("map").forGetter(config -> config.map),

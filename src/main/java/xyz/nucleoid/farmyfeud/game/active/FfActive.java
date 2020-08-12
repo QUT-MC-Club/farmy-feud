@@ -111,12 +111,12 @@ public final class FfActive {
         FfActive active = new FfActive(gameWorld, map, config);
 
         gameWorld.newGame(game -> {
-            game.setRule(GameRule.ALLOW_CRAFTING, RuleResult.DENY);
-            game.setRule(GameRule.ALLOW_PORTALS, RuleResult.DENY);
-            game.setRule(GameRule.ALLOW_PVP, RuleResult.ALLOW);
+            game.setRule(GameRule.CRAFTING, RuleResult.DENY);
+            game.setRule(GameRule.PORTALS, RuleResult.DENY);
+            game.setRule(GameRule.PVP, RuleResult.ALLOW);
             game.setRule(GameRule.FALL_DAMAGE, RuleResult.ALLOW);
             game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
-            game.setRule(GameRule.ENABLE_HUNGER, RuleResult.DENY);
+            game.setRule(GameRule.HUNGER, RuleResult.DENY);
 
             game.on(GameOpenListener.EVENT, active::open);
             game.on(GameCloseListener.EVENT, active::close);
@@ -171,7 +171,7 @@ public final class FfActive {
 
         if (this.closeTime != -1) {
             if (time >= this.closeTime) {
-                this.gameWorld.closeWorld();
+                this.gameWorld.close();
             }
             return;
         }
