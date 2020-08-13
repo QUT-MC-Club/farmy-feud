@@ -1,7 +1,28 @@
 package xyz.nucleoid.farmyfeud.game.active;
 
+import net.fabricmc.fabric.api.tool.attribute.v1.FabricToolTags;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
+import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameMode;
 import xyz.nucleoid.farmyfeud.FarmyFeud;
 import xyz.nucleoid.farmyfeud.entity.FarmSheepEntity;
 import xyz.nucleoid.farmyfeud.game.FfConfig;
@@ -24,25 +45,6 @@ import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -57,9 +59,12 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 public final class FfActive {
-    public static final long RESPAWN_SECONDS = 5;
-    public static final long RESPAWN_TICKS = RESPAWN_SECONDS * 20;
-    public static final long PICK_UP_INTERVAL_TICKS = 20;
+    public static final int RESPAWN_SECONDS = 5;
+    public static final int RESPAWN_TICKS = RESPAWN_SECONDS * 20;
+    public static final int PICK_UP_INTERVAL_TICKS = 20;
+    public static final int LEAP_INTERVAL_TICKS = 5 * 20;
+
+    private static final double LEAP_VELOCITY = 1.2;
 
     private static final ItemStackBuilder SWORD = ItemStackBuilder.of(Items.WOODEN_SWORD)
             .setUnbreakable();
@@ -320,6 +325,16 @@ public final class FfActive {
                     return TypedActionResult.consume(heldStack);
                 }
             }
+        } else if (heldStack.getItem().isIn(FabricToolTags.AXES)) {
+            FfParticipant participant = this.getParticipant(player);
+            if (participant != null) {
+                Vec3d rotationVec = player.getRotationVec(1.0F).multiply(LEAP_VELOCITY);
+                player.addVelocity(rotationVec.x, rotationVec.y, rotationVec.z);
+                player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
+
+                player.playSound(SoundEvents.ENTITY_HORSE_SADDLE, 1.0F, 1.0F);
+                player.getItemCooldownManager().set(heldStack.getItem(), LEAP_INTERVAL_TICKS);
+            }
         }
 
         return TypedActionResult.pass(ItemStack.EMPTY);
@@ -357,6 +372,7 @@ public final class FfActive {
 
                 sheep.detach();
                 sheep.teleport(respawnPos.x, respawnPos.y, respawnPos.z);
+                sheep.setFireTicks(0);
             }
         }
     }
