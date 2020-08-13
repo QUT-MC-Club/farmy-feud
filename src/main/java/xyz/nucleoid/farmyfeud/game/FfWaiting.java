@@ -1,13 +1,14 @@
 package xyz.nucleoid.farmyfeud.game;
 
 import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.farmyfeud.game.active.FfActive;
 import xyz.nucleoid.farmyfeud.game.map.FfMap;
 import xyz.nucleoid.farmyfeud.game.map.FfMapBuilder;
+import xyz.nucleoid.plasmid.game.GameOpenContext;
 import xyz.nucleoid.plasmid.game.GameWorld;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
@@ -38,12 +39,14 @@ public final class FfWaiting {
         this.spawnLogic = new FfSpawnLogic(this.world, map);
     }
 
-    public static CompletableFuture<Void> open(MinecraftServer server, FfConfig config) {
+    public static CompletableFuture<Void> open(GameOpenContext<FfConfig> context) {
+        FfConfig config = context.getConfig();
+
         return new FfMapBuilder(config).create().thenAccept(map -> {
             BubbleWorldConfig worldConfig = new BubbleWorldConfig()
-                    .setGenerator(map.createGenerator(server))
+                    .setGenerator(map.createGenerator(context.getServer()))
                     .setDefaultGameMode(GameMode.SPECTATOR);
-            GameWorld gameWorld = GameWorld.open(server, worldConfig);
+            GameWorld gameWorld = context.openWorld(worldConfig);
 
             FfWaiting waiting = new FfWaiting(gameWorld, map, config);
 
@@ -84,9 +87,9 @@ public final class FfWaiting {
         this.spawnPlayer(player);
     }
 
-    private boolean onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+    private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
         this.spawnPlayer(player);
-        return true;
+        return ActionResult.FAIL;
     }
 
     private void spawnPlayer(ServerPlayerEntity player) {

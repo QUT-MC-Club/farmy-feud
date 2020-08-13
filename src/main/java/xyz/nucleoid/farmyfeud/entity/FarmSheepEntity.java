@@ -31,6 +31,8 @@ public final class FarmSheepEntity extends SheepEntity {
     private GameTeam ownerTeam;
     private BlockBounds home;
 
+    private Vec3d lastDropPos;
+
     public FarmSheepEntity(World world, FfActive game) {
         super(EntityType.SHEEP, world);
         this.game = game;
@@ -39,6 +41,7 @@ public final class FarmSheepEntity extends SheepEntity {
     public void setOwnerTeam(@Nullable GameTeam team, BlockBounds home) {
         this.ownerTeam = team;
         this.home = home;
+        this.lastDropPos = null;
 
         this.getNavigation().stop();
 
@@ -52,9 +55,18 @@ public final class FarmSheepEntity extends SheepEntity {
         }
     }
 
+    public void setLastDropPos(Vec3d lastDropPos) {
+        this.lastDropPos = lastDropPos;
+    }
+
     @Nullable
     public BlockBounds getHome() {
         return this.home;
+    }
+
+    @Nullable
+    public Vec3d getLastDropPos() {
+        return this.lastDropPos;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package xyz.nucleoid.farmyfeud.game.active;
 
+import net.minecraft.util.ActionResult;
 import xyz.nucleoid.farmyfeud.FarmyFeud;
 import xyz.nucleoid.farmyfeud.entity.FarmSheepEntity;
 import xyz.nucleoid.farmyfeud.game.FfConfig;
@@ -335,22 +336,36 @@ public final class FfActive {
         }
 
         if (this.world.getTime() % 20 == 0) {
-            BlockPos sheepPos = sheep.getBlockPos();
-
-            for (BlockBounds region : this.map.getIllegalSheepRegions()) {
-                if (region.contains(sheepPos)) {
+            if (this.shouldRespawnSheep(sheep)) {
+                Vec3d respawnPos = sheep.getLastDropPos();
+                if (respawnPos == null) {
                     BlockBounds home = sheep.getHome();
                     if (home == null) {
                         home = this.map.getCenterSpawn();
                     }
 
-                    Vec3d spawn = home.getCenter();
-
-                    sheep.detach();
-                    sheep.teleport(spawn.x, spawn.y, spawn.z);
+                    respawnPos = home.getCenter();
                 }
+
+                sheep.detach();
+                sheep.teleport(respawnPos.x, respawnPos.y, respawnPos.z);
             }
         }
+    }
+
+    private boolean shouldRespawnSheep(FarmSheepEntity sheep) {
+        if (sheep.isInLava()) {
+            return true;
+        }
+
+        BlockPos sheepPos = sheep.getBlockPos();
+        for (BlockBounds region : this.map.getIllegalSheepRegions()) {
+            if (region.contains(sheepPos)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void tickSheepStack(ServerPlayerEntity player, FfParticipant participant) {
@@ -369,14 +384,15 @@ public final class FfActive {
         }
     }
 
-    private void throwEntities(ServerPlayerEntity player, Collection<? extends Entity> entities, double strength) {
+    private void throwEntities(ServerPlayerEntity player, Collection<FarmSheepEntity> entities, double strength) {
         Vec3d rotation = player.getRotationVec(1.0F);
-        for (Entity entity : entities) {
-            entity.setVelocity(rotation.multiply(strength));
+        for (FarmSheepEntity sheep : entities) {
+            sheep.setVelocity(rotation.multiply(strength));
+            sheep.setLastDropPos(sheep.getPos());
         }
     }
 
-    private boolean onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+    private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
         MutableText message;
 
         Entity attackerEntity = source.getAttacker();
@@ -389,7 +405,7 @@ public final class FfActive {
         this.broadcastMessage(message.formatted(Formatting.GRAY));
 
         this.respawnPlayer(player);
-        return true;
+        return ActionResult.FAIL;
     }
 
     private boolean onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
