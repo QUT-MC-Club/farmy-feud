@@ -1,5 +1,6 @@
 package xyz.nucleoid.farmyfeud.game.active;
 
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import xyz.nucleoid.farmyfeud.FarmyFeud;
 import xyz.nucleoid.farmyfeud.entity.FarmSheepEntity;
@@ -58,6 +59,7 @@ import java.util.stream.Stream;
 public final class FfActive {
     public static final long RESPAWN_SECONDS = 5;
     public static final long RESPAWN_TICKS = RESPAWN_SECONDS * 20;
+    public static final long PICK_UP_INTERVAL_TICKS = 20;
 
     private static final ItemStackBuilder SWORD = ItemStackBuilder.of(Items.WOODEN_SWORD)
             .setUnbreakable();
@@ -297,6 +299,8 @@ public final class FfActive {
             if (participant != null) {
                 List<FarmSheepEntity> entities = participant.carryStack.dropAll(player);
                 this.throwEntities(player, entities, 1.0);
+
+                player.playSound(SoundEvents.ENTITY_HORSE_SADDLE, 1.0F, 1.0F);
             }
         }
     }
@@ -327,7 +331,11 @@ public final class FfActive {
             return false;
         }
 
-        return participant.carryStack.tryAdd(player, sheep);
+        if (sheep.tryPickUp(this.world.getTime())) {
+            return participant.carryStack.tryAdd(player, sheep);
+        }
+
+        return false;
     }
 
     public void tickSheep(FarmSheepEntity sheep) {
@@ -388,7 +396,7 @@ public final class FfActive {
         Vec3d rotation = player.getRotationVec(1.0F);
         for (FarmSheepEntity sheep : entities) {
             sheep.setVelocity(rotation.multiply(strength));
-            sheep.setLastDropPos(sheep.getPos());
+            sheep.drop();
         }
     }
 
