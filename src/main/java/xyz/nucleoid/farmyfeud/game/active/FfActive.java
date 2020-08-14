@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.tool.attribute.v1.FabricToolTags;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.player.ItemCooldownManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
@@ -325,14 +326,17 @@ public final class FfActive {
                 }
             }
         } else if (heldStack.getItem().isIn(FabricToolTags.AXES)) {
-            FfParticipant participant = this.getParticipant(player);
-            if (participant != null) {
-                Vec3d rotationVec = player.getRotationVec(1.0F).multiply(LEAP_VELOCITY);
-                player.addVelocity(rotationVec.x, rotationVec.y, rotationVec.z);
-                player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
+            ItemCooldownManager cooldown = player.getItemCooldownManager();
+            if (!cooldown.isCoolingDown(heldStack.getItem())) {
+                FfParticipant participant = this.getParticipant(player);
+                if (participant != null) {
+                    Vec3d rotationVec = player.getRotationVec(1.0F);
+                    player.setVelocity(rotationVec.multiply(LEAP_VELOCITY));
+                    player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
 
-                player.playSound(SoundEvents.ENTITY_HORSE_SADDLE, 1.0F, 1.0F);
-                player.getItemCooldownManager().set(heldStack.getItem(), LEAP_INTERVAL_TICKS);
+                    player.playSound(SoundEvents.ENTITY_HORSE_SADDLE, 1.0F, 1.0F);
+                    cooldown.set(heldStack.getItem(), LEAP_INTERVAL_TICKS);
+                }
             }
         }
 
