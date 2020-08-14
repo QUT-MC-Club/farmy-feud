@@ -85,9 +85,9 @@ public final class FfActive {
     public final FfMap map;
     public final FfSpawnLogic spawnLogic;
     public final FfCaptureLogic captureLogic;
-    public final FfScoreboard scoreboard;
 
-    private final FfTimerBar timerBar = new FfTimerBar();
+    public final FfScoreboard scoreboard;
+    private final FfTimerBar timerBar;
 
     private final Map<GameTeam, FfTeamState> teams = new HashMap<>();
     private final Map<UUID, FfParticipant> participants = new HashMap<>();
@@ -108,7 +108,8 @@ public final class FfActive {
         this.spawnLogic = new FfSpawnLogic(this.world, this.map);
         this.captureLogic = new FfCaptureLogic(this);
 
-        this.scoreboard = FfScoreboard.create(this);
+        this.scoreboard = gameWorld.addResource(FfScoreboard.create(this));
+        this.timerBar = gameWorld.addResource(new FfTimerBar());
 
         for (GameTeam team : config.teams) {
             this.teams.put(team, new FfTeamState(team));
@@ -125,6 +126,7 @@ public final class FfActive {
             game.setRule(GameRule.FALL_DAMAGE, RuleResult.ALLOW);
             game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
             game.setRule(GameRule.HUNGER, RuleResult.DENY);
+            game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
 
             game.on(GameOpenListener.EVENT, active::open);
             game.on(GameCloseListener.EVENT, active::close);
@@ -156,9 +158,6 @@ public final class FfActive {
     }
 
     private void close() {
-        this.scoreboard.close();
-        this.timerBar.close();
-
         for (FfParticipant participant : this.participants.values()) {
             ServerPlayerEntity player = participant.player();
             if (player != null) {
@@ -421,12 +420,15 @@ public final class FfActive {
 
         Entity attackerEntity = source.getAttacker();
         if (attackerEntity instanceof ServerPlayerEntity) {
-            message = player.getDisplayName().shallowCopy().append(" was killed by ").append(attackerEntity.getDisplayName());
+            message = player.getDisplayName().shallowCopy()
+                    .append(new LiteralText(" was killed by ").formatted(Formatting.GRAY))
+                    .append(attackerEntity.getDisplayName());
         } else {
-            message = player.getDisplayName().shallowCopy().append(" died");
+            message = player.getDisplayName().shallowCopy()
+                    .append(new LiteralText(" died").formatted(Formatting.GRAY));
         }
 
-        this.broadcastMessage(message.formatted(Formatting.GRAY));
+        this.broadcastMessage(message);
 
         this.respawnPlayer(player);
         return ActionResult.FAIL;
@@ -494,15 +496,16 @@ public final class FfActive {
     private void broadcastWinResult(WinResult result) {
         GameTeam winningTeam = result.getWinningTeam();
 
+        Text message;
         if (winningTeam != null) {
-            Text message = new LiteralText(winningTeam.getDisplay() + " won the game!")
+            message = new LiteralText(winningTeam.getDisplay() + " won the game!")
                     .formatted(Formatting.BOLD, winningTeam.getFormatting());
-            this.broadcastMessage(message);
         } else {
-            Text message = new LiteralText("The game ended in a draw!")
+            message = new LiteralText("The game ended in a draw!")
                     .formatted(Formatting.BOLD, Formatting.GRAY);
-            this.broadcastMessage(message);
         }
+
+        this.broadcastMessage(message);
     }
     // TODO: extract common broadcast utils into plasmid
 
