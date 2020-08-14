@@ -128,6 +128,7 @@ public final class FfActive {
             game.setRule(GameRule.BLOCK_DROPS, RuleResult.DENY);
             game.setRule(GameRule.HUNGER, RuleResult.DENY);
             game.setRule(GameRule.THROW_ITEMS, RuleResult.DENY);
+            game.setRule(GameRule.TEAM_CHAT, RuleResult.ALLOW);
 
             game.on(GameOpenListener.EVENT, active::open);
             game.on(GameCloseListener.EVENT, active::close);
