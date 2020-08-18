@@ -18,7 +18,7 @@ import xyz.nucleoid.plasmid.game.event.RequestStartListener;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
 import xyz.nucleoid.plasmid.game.rule.RuleResult;
-import xyz.nucleoid.plasmid.game.world.bubble.BubbleWorldConfig;
+import xyz.nucleoid.plasmid.world.bubble.BubbleWorldConfig;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -39,29 +39,32 @@ public final class FfWaiting {
         this.spawnLogic = new FfSpawnLogic(this.world, map);
     }
 
-    public static CompletableFuture<Void> open(GameOpenContext<FfConfig> context) {
+    public static CompletableFuture<GameWorld> open(GameOpenContext<FfConfig> context) {
         FfConfig config = context.getConfig();
 
-        return new FfMapBuilder(config).create().thenAccept(map -> {
+        return new FfMapBuilder(config).create().thenCompose(map -> {
             BubbleWorldConfig worldConfig = new BubbleWorldConfig()
                     .setGenerator(map.createGenerator(context.getServer()))
                     .setDefaultGameMode(GameMode.SPECTATOR);
-            GameWorld gameWorld = context.openWorld(worldConfig);
 
-            FfWaiting waiting = new FfWaiting(gameWorld, map, config);
+            return context.openWorld(worldConfig).thenApply(gameWorld -> {
+                FfWaiting waiting = new FfWaiting(gameWorld, map, config);
 
-            gameWorld.openGame(game -> {
-                game.setRule(GameRule.CRAFTING, RuleResult.DENY);
-                game.setRule(GameRule.PORTALS, RuleResult.DENY);
-                game.setRule(GameRule.PVP, RuleResult.DENY);
-                game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
-                game.setRule(GameRule.HUNGER, RuleResult.DENY);
+                gameWorld.openGame(game -> {
+                    game.setRule(GameRule.CRAFTING, RuleResult.DENY);
+                    game.setRule(GameRule.PORTALS, RuleResult.DENY);
+                    game.setRule(GameRule.PVP, RuleResult.DENY);
+                    game.setRule(GameRule.FALL_DAMAGE, RuleResult.DENY);
+                    game.setRule(GameRule.HUNGER, RuleResult.DENY);
 
-                game.on(RequestStartListener.EVENT, waiting::requestStart);
-                game.on(OfferPlayerListener.EVENT, waiting::offerPlayer);
+                    game.on(RequestStartListener.EVENT, waiting::requestStart);
+                    game.on(OfferPlayerListener.EVENT, waiting::offerPlayer);
 
-                game.on(PlayerAddListener.EVENT, waiting::addPlayer);
-                game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
+                    game.on(PlayerAddListener.EVENT, waiting::addPlayer);
+                    game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
+                });
+
+                return gameWorld;
             });
         });
     }
@@ -76,11 +79,11 @@ public final class FfWaiting {
 
     private StartResult requestStart() {
         if (this.gameWorld.getPlayerCount() < this.config.players.getMinPlayers()) {
-            return StartResult.notEnoughPlayers();
+            return StartResult.NOT_ENOUGH_PLAYERS;
         }
 
         FfActive.open(this.gameWorld, this.map, this.config);
-        return StartResult.ok();
+        return StartResult.OK;
     }
 
     private void addPlayer(ServerPlayerEntity player) {

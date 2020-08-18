@@ -28,7 +28,7 @@ dependencies {
 	implementation 'kdotjpg:open-simplex:2.0'
 	include 'kdotjpg:open-simplex:2.0'
 
-	modImplementation 'xyz.nucleoid:plasmid:0.2.3'
+	modImplementation 'xyz.nucleoid:plasmid:0.3.0'
 
 	modRuntime ("com.github.SuperCoder7979:databreaker:0.2.6") {
 		exclude module : "fabric-loader"
