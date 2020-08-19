@@ -1,40 +1,31 @@
 package xyz.nucleoid.farmyfeud.game.active;
 
 import net.minecraft.entity.boss.BossBar;
-import net.minecraft.entity.boss.ServerBossBar;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
+import xyz.nucleoid.plasmid.game.GameWorld;
+import xyz.nucleoid.plasmid.widget.BossBarWidget;
 
-// TODO: duplication with spleef!
 public final class FfTimerBar implements AutoCloseable {
-    private final ServerBossBar bar;
+    private final BossBarWidget bar;
 
-    public FfTimerBar() {
+    FfTimerBar(GameWorld gameWorld) {
         LiteralText title = new LiteralText("Game ends in...");
-
-        this.bar = new ServerBossBar(title, BossBar.Color.RED, BossBar.Style.NOTCHED_10);
-        this.bar.setDarkenSky(false);
-        this.bar.setDragonMusic(false);
-        this.bar.setThickenFog(false);
+        this.bar = BossBarWidget.open(gameWorld.getPlayerSet(), title, BossBar.Color.RED, BossBar.Style.NOTCHED_10);
     }
 
     public void update(long timeLeft, long totalTime) {
         if (timeLeft % 20 == 0) {
-            this.bar.setName(this.getText(timeLeft));
-            this.bar.setPercent((float) timeLeft / totalTime);
+            this.bar.setTitle(this.getText(timeLeft));
+            this.bar.setProgress((float) timeLeft / totalTime);
         }
     }
 
-    public void addPlayer(ServerPlayerEntity player) {
-        this.bar.addPlayer(player);
-    }
+    private Text getText(long tickUntilEnd) {
+        long secondsUntilEnd = tickUntilEnd / 20;
 
-    private Text getText(long ticksUntilDrop) {
-        long secondsUntilDrop = ticksUntilDrop / 20;
-
-        long minutes = secondsUntilDrop / 60;
-        long seconds = secondsUntilDrop % 60;
+        long minutes = secondsUntilEnd / 60;
+        long seconds = secondsUntilEnd % 60;
         String time = String.format("%02d:%02d", minutes, seconds);
 
         return new LiteralText("Game ends in: " + time + "...");
@@ -42,7 +33,6 @@ public final class FfTimerBar implements AutoCloseable {
 
     @Override
     public void close() {
-        this.bar.clearPlayers();
-        this.bar.setVisible(false);
+        this.bar.close();
     }
 }

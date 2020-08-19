@@ -10,8 +10,6 @@ import net.minecraft.item.Items;
 import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.MutableText;
@@ -30,15 +28,7 @@ import xyz.nucleoid.farmyfeud.game.FfConfig;
 import xyz.nucleoid.farmyfeud.game.FfSpawnLogic;
 import xyz.nucleoid.farmyfeud.game.map.FfMap;
 import xyz.nucleoid.plasmid.game.GameWorld;
-import xyz.nucleoid.plasmid.game.event.GameCloseListener;
-import xyz.nucleoid.plasmid.game.event.GameOpenListener;
-import xyz.nucleoid.plasmid.game.event.GameTickListener;
-import xyz.nucleoid.plasmid.game.event.HandSwingListener;
-import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
-import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
-import xyz.nucleoid.plasmid.game.event.PlayerDamageListener;
-import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
-import xyz.nucleoid.plasmid.game.event.UseItemListener;
+import xyz.nucleoid.plasmid.game.event.*;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
@@ -48,15 +38,7 @@ import xyz.nucleoid.plasmid.util.ColoredBlocks;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 public final class FfActive {
@@ -110,7 +92,7 @@ public final class FfActive {
         this.captureLogic = new FfCaptureLogic(this);
 
         this.scoreboard = gameWorld.addResource(FfScoreboard.create(this));
-        this.timerBar = gameWorld.addResource(new FfTimerBar());
+        this.timerBar = gameWorld.addResource(new FfTimerBar(gameWorld));
 
         for (GameTeam team : config.teams) {
             this.teams.put(team, new FfTeamState(team));
@@ -171,8 +153,6 @@ public final class FfActive {
     private void addPlayer(ServerPlayerEntity player) {
         FfParticipant participant = this.getOrCreateParticipant(player);
         this.spawnParticipant(player, participant);
-
-        this.timerBar.addPlayer(player);
     }
 
     private void tick() {
@@ -433,7 +413,7 @@ public final class FfActive {
                     .append(new LiteralText(" died").formatted(Formatting.GRAY));
         }
 
-        this.broadcastMessage(message);
+        this.gameWorld.getPlayerSet().sendMessage(message);
 
         this.respawnPlayer(player);
         return ActionResult.FAIL;
@@ -510,26 +490,7 @@ public final class FfActive {
                     .formatted(Formatting.BOLD, Formatting.GRAY);
         }
 
-        this.broadcastMessage(message);
-    }
-    // TODO: extract common broadcast utils into plasmid
-
-    private void broadcastMessage(Text message) {
-        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
-            player.sendMessage(message, false);
-        }
-    }
-
-    private void broadcastActionBar(Text message) {
-        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
-            player.sendMessage(message, true);
-        }
-    }
-
-    private void broadcastSound(SoundEvent sound) {
-        for (ServerPlayerEntity player : this.gameWorld.getPlayers()) {
-            player.playSound(sound, SoundCategory.PLAYERS, 1.0F, 1.0F);
-        }
+        this.gameWorld.getPlayerSet().sendMessage(message);
     }
 
     public Stream<FfParticipant> participants() {

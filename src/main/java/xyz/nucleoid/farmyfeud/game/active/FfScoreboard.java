@@ -1,21 +1,18 @@
 package xyz.nucleoid.farmyfeud.game.active;
 
-import xyz.nucleoid.farmyfeud.FarmyFeud;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
 import net.minecraft.scoreboard.AbstractTeam;
-import net.minecraft.scoreboard.ScoreboardCriterion;
-import net.minecraft.scoreboard.ScoreboardObjective;
-import net.minecraft.scoreboard.ScoreboardPlayerScore;
 import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.widget.SidebarWidget;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,31 +20,19 @@ import java.util.Map;
 public final class FfScoreboard implements AutoCloseable {
     private final FfActive game;
 
+    private final SidebarWidget sidebar;
     private final Map<GameTeam, Team> scoreboardTeams = new HashMap<>();
-    private final ScoreboardObjective objective;
 
-    private FfScoreboard(FfActive game, ScoreboardObjective objective) {
+    private FfScoreboard(FfActive game, SidebarWidget sidebar) {
         this.game = game;
-        this.objective = objective;
+        this.sidebar = sidebar;
     }
 
     public static FfScoreboard create(FfActive game) {
-        ServerWorld world = game.gameWorld.getWorld();
-        MinecraftServer server = world.getServer();
+        Text title = new LiteralText("Farmy Feud").formatted(Formatting.GOLD, Formatting.BOLD);
+        SidebarWidget sidebar = SidebarWidget.open(title, game.gameWorld.getPlayerSet());
 
-        ServerScoreboard scoreboard = server.getScoreboard();
-
-        ScoreboardObjective objective = new ScoreboardObjective(
-                scoreboard, FarmyFeud.ID,
-                ScoreboardCriterion.DUMMY,
-                new LiteralText("Farmy Feud").formatted(Formatting.GOLD, Formatting.BOLD),
-                ScoreboardCriterion.RenderType.INTEGER
-        );
-        scoreboard.addScoreboardObjective(objective);
-
-        scoreboard.setObjectiveSlot(1, objective);
-
-        return new FfScoreboard(game, objective);
+        return new FfScoreboard(game, sidebar);
     }
 
     public void tick() {
@@ -107,7 +92,7 @@ public final class FfScoreboard implements AutoCloseable {
             lines.add("  " + nameFormat + name + ": " + descriptionFormat + description);
         });
 
-        this.render(lines.toArray(new String[0]));
+        this.sidebar.set(lines.toArray(new String[0]));
     }
 
     private String renderTime(long ticks) {
@@ -115,29 +100,6 @@ public final class FfScoreboard implements AutoCloseable {
         long minutes = ticks / (20 * 60);
 
         return String.format("%02d:%02d", minutes, seconds);
-    }
-
-    private void render(String[] lines) {
-        ServerWorld world = this.game.gameWorld.getWorld();
-        MinecraftServer server = world.getServer();
-        ServerScoreboard scoreboard = server.getScoreboard();
-
-        render(scoreboard, this.objective, lines);
-    }
-
-    private static void render(ServerScoreboard scoreboard, ScoreboardObjective objective, String[] lines) {
-        clear(scoreboard, objective);
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
-            scoreboard.getPlayerScore(line, objective).setScore(lines.length - i);
-        }
-    }
-
-    private static void clear(ServerScoreboard scoreboard, ScoreboardObjective objective) {
-        Collection<ScoreboardPlayerScore> existing = scoreboard.getAllPlayerScores(objective);
-        for (ScoreboardPlayerScore score : existing) {
-            scoreboard.resetPlayerScore(score.getPlayerName(), objective);
-        }
     }
 
     @Override
@@ -148,6 +110,6 @@ public final class FfScoreboard implements AutoCloseable {
         ServerScoreboard scoreboard = server.getScoreboard();
         this.scoreboardTeams.values().forEach(scoreboard::removeTeam);
 
-        scoreboard.removeObjective(this.objective);
+        this.sidebar.close();
     }
 }
