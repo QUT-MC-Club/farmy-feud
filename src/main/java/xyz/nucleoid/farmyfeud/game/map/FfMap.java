@@ -20,7 +20,7 @@ public final class FfMap {
     private BlockBounds centerSpawn;
     private final Map<GameTeam, TeamRegions> teamRegions = new HashMap<>();
 
-    private Collection<BlockBounds> illegalSheepRegions = new ArrayList<>();
+    private final Collection<BlockBounds> illegalSheepRegions = new ArrayList<>();
 
     public FfMap(MapTemplate template) {
         this.template = template;
@@ -32,6 +32,7 @@ public final class FfMap {
 
     public void addTeamRegions(GameTeam team, TeamRegions regions) {
         this.teamRegions.put(team, regions);
+        this.addIllegalSheepRegion(regions.spawn);
     }
 
     public void addIllegalSheepRegion(BlockBounds bounds) {
