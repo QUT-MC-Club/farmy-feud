@@ -34,6 +34,7 @@ public final class FarmSheepEntity extends SheepEntity {
     private Vec3d lastDropPos;
 
     private long lastPickUpTime;
+    private GameTeam lastPickUpTeam;
 
     public FarmSheepEntity(World world, FfActive game) {
         super(EntityType.SHEEP, world);
@@ -62,9 +63,10 @@ public final class FarmSheepEntity extends SheepEntity {
         this.lastPickUpTime = this.world.getTime();
     }
 
-    public boolean tryPickUp(long time) {
+    public boolean tryPickUp(long time, GameTeam team) {
         if (time - this.lastPickUpTime >= FfActive.PICK_UP_INTERVAL_TICKS) {
             this.lastPickUpTime = time;
+            this.lastPickUpTeam = team;
             return true;
         }
         return false;
@@ -78,6 +80,11 @@ public final class FarmSheepEntity extends SheepEntity {
     @Nullable
     public Vec3d getLastDropPos() {
         return this.lastDropPos;
+    }
+
+    @Nullable
+    public GameTeam getLastPickUpTeam() {
+        return this.lastPickUpTeam;
     }
 
     @Override

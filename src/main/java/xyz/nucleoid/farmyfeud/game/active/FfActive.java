@@ -49,10 +49,10 @@ public final class FfActive {
 
     private static final double LEAP_VELOCITY = 1.2;
 
-    private static final ItemStackBuilder SWORD = ItemStackBuilder.of(Items.WOODEN_SWORD)
+    private static final ItemStackBuilder SWORD = ItemStackBuilder.of(Items.STONE_SWORD)
             .setUnbreakable();
 
-    private static final ItemStackBuilder AXE = ItemStackBuilder.of(Items.WOODEN_AXE)
+    private static final ItemStackBuilder AXE = ItemStackBuilder.of(Items.STONE_AXE)
             .setUnbreakable();
 
     private static final ItemStackBuilder BOW = ItemStackBuilder.of(Items.BOW)
@@ -330,7 +330,7 @@ public final class FfActive {
             return false;
         }
 
-        if (sheep.tryPickUp(this.world.getTime())) {
+        if (sheep.tryPickUp(this.world.getTime(), participant.team)) {
             return participant.carryStack.tryAdd(player, sheep);
         }
 
@@ -338,12 +338,16 @@ public final class FfActive {
     }
 
     public void tickSheep(FarmSheepEntity sheep) {
-        if (sheep.hasVehicle()) {
-            return;
-        }
+        if (this.world.getTime() % 10 == 0) {
+            GameTeam lastPickUpTeam = sheep.getLastPickUpTeam();
+            if (lastPickUpTeam != null) {
+                GameTeam team = this.captureLogic.getTeamAt(sheep.getPos());
+                if (team == lastPickUpTeam) {
+                    this.captureLogic.captureSheep(sheep, team);
+                }
+            }
 
-        if (this.world.getTime() % 20 == 0) {
-            if (this.shouldRespawnSheep(sheep)) {
+            if (!sheep.hasVehicle() && this.shouldRespawnSheep(sheep)) {
                 Vec3d respawnPos = sheep.getLastDropPos();
                 if (respawnPos == null) {
                     BlockBounds home = sheep.getHome();
@@ -385,10 +389,6 @@ public final class FfActive {
         if (captureTeam == participant.team) {
             List<FarmSheepEntity> entities = participant.carryStack.dropAll(player);
             this.throwEntities(player, entities, 0.5);
-
-            for (FarmSheepEntity sheep : entities) {
-                this.captureLogic.captureSheep(sheep, captureTeam);
-            }
         }
     }
 

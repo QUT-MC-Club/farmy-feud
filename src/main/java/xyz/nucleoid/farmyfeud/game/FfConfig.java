@@ -17,7 +17,7 @@ public final class FfConfig {
                 Codec.LONG.optionalFieldOf("game_duration", 60L * 8 * 20).forGetter(config -> config.gameDuration),
                 Codec.LONG.optionalFieldOf("spawn_interval", 30L * 30).forGetter(config -> config.spawnInterval),
                 Codec.INT.optionalFieldOf("max_arrows", 3).forGetter(config -> config.maxArrows),
-                Codec.LONG.optionalFieldOf("arrow_interval", 20L * 20).forGetter(config -> config.arrowInterval)
+                Codec.LONG.optionalFieldOf("arrow_interval", 20L * 10).forGetter(config -> config.arrowInterval)
         ).apply(instance, FfConfig::new);
     });
 
