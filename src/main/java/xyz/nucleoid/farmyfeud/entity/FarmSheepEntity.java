@@ -36,15 +36,19 @@ public final class FarmSheepEntity extends SheepEntity {
     private long lastPickUpTime;
     private GameTeam lastPickUpTeam;
 
+    private long lastValidTime;
+
     public FarmSheepEntity(World world, FfActive game) {
         super(EntityType.SHEEP, world);
         this.game = game;
+        this.lastValidTime = world.getTime();
     }
 
     public void setOwnerTeam(@Nullable GameTeam team, BlockBounds home) {
         this.ownerTeam = team;
         this.home = home;
         this.lastDropPos = null;
+        this.lastValidTime = this.world.getTime();
 
         this.getNavigation().stop();
 
@@ -98,6 +102,18 @@ public final class FarmSheepEntity extends SheepEntity {
     @Override
     protected void mobTick() {
         this.game.tickSheep(this);
+
+        if (this.home != null) {
+            long time = this.world.getTime();
+            if (this.hasVehicle() || this.home.contains(this.getBlockPos())) {
+                this.lastValidTime = time;
+            }
+
+            if (time - this.lastValidTime > 20 * 20) {
+                Vec3d center = this.home.getCenter();
+                this.teleport(center.getX(), center.getY() + 0.5, center.getZ());
+            }
+        }
     }
 
     @Override
