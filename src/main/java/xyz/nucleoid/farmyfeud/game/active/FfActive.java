@@ -365,6 +365,7 @@ public final class FfActive {
         }
     }
 
+    // TODO: if the last pos was inside an illegal region we can't teleport there
     private boolean shouldRespawnSheep(FarmSheepEntity sheep) {
         if (sheep.isInLava()) {
             return true;
