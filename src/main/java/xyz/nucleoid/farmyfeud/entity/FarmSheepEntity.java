@@ -1,8 +1,5 @@
 package xyz.nucleoid.farmyfeud.entity;
 
-import xyz.nucleoid.farmyfeud.game.active.FfActive;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
-import xyz.nucleoid.plasmid.util.BlockBounds;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ai.goal.Goal;
@@ -21,8 +18,11 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
+import xyz.nucleoid.farmyfeud.game.active.FfActive;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.util.BlockBounds;
 
-import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.Random;
 
