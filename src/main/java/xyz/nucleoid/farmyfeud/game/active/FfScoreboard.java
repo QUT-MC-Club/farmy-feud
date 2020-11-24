@@ -10,11 +10,10 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.widget.GlobalWidgets;
 import xyz.nucleoid.plasmid.widget.SidebarWidget;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public final class FfScoreboard implements AutoCloseable {
@@ -28,15 +27,14 @@ public final class FfScoreboard implements AutoCloseable {
         this.sidebar = sidebar;
     }
 
-    public static FfScoreboard create(FfActive game) {
+    public static FfScoreboard create(FfActive game, GlobalWidgets widgets) {
         Text title = new LiteralText("Farmy Feud").formatted(Formatting.GOLD, Formatting.BOLD);
-        SidebarWidget sidebar = SidebarWidget.open(title, game.gameWorld.getPlayerSet());
-
+        SidebarWidget sidebar = widgets.addSidebar(title);
         return new FfScoreboard(game, sidebar);
     }
 
     public void tick() {
-        ServerWorld world = this.game.gameWorld.getWorld();
+        ServerWorld world = this.game.gameSpace.getWorld();
         long time = world.getTime();
 
         if (time % 20 == 0) {
@@ -45,7 +43,7 @@ public final class FfScoreboard implements AutoCloseable {
     }
 
     public void addPlayer(ServerPlayerEntity player, GameTeam team) {
-        ServerWorld world = this.game.gameWorld.getWorld();
+        ServerWorld world = this.game.gameSpace.getWorld();
         MinecraftServer server = world.getServer();
 
         ServerScoreboard scoreboard = server.getScoreboard();
@@ -54,7 +52,7 @@ public final class FfScoreboard implements AutoCloseable {
 
     public Team scoreboardTeam(GameTeam team) {
         return this.scoreboardTeams.computeIfAbsent(team, t -> {
-            ServerWorld world = this.game.gameWorld.getWorld();
+            ServerWorld world = this.game.gameSpace.getWorld();
             MinecraftServer server = world.getServer();
             ServerScoreboard scoreboard = server.getScoreboard();
             String teamKey = t.getDisplay();
@@ -70,29 +68,27 @@ public final class FfScoreboard implements AutoCloseable {
     }
 
     private void rerender(long time) {
-        List<String> lines = new ArrayList<>(10);
+        this.sidebar.set(content -> {
+            long ticksRemaining = Math.max(this.game.endTime - time, 0);
+            long sheepTicksRemaining = Math.max(this.game.nextSpawnTime - time, 0);
 
-        long ticksRemaining = Math.max(this.game.endTime - time, 0);
-        long sheepTicksRemaining = Math.max(this.game.nextSpawnTime - time, 0);
+            content.writeLine(Formatting.RED.toString() + Formatting.BOLD + "Time left: " + Formatting.RESET + this.renderTime(ticksRemaining));
+            content.writeLine("");
 
-        lines.add(Formatting.RED.toString() + Formatting.BOLD + "Time left: " + Formatting.RESET + this.renderTime(ticksRemaining));
-        lines.add("");
+            content.writeLine(Formatting.BLUE + "Sheep in: " + Formatting.RESET + this.renderTime(sheepTicksRemaining));
+            content.writeLine("");
 
-        lines.add(Formatting.BLUE + "Sheep in: " + Formatting.RESET + this.renderTime(sheepTicksRemaining));
-        lines.add("");
+            content.writeLine(Formatting.BOLD + "Teams:");
+            this.game.teams().forEach(teamState -> {
+                String nameFormat = teamState.team.getFormatting().toString() + Formatting.BOLD.toString();
+                String descriptionFormat = Formatting.RESET.toString() + Formatting.GRAY.toString();
 
-        lines.add(Formatting.BOLD + "Teams:");
-        this.game.teams().forEach(teamState -> {
-            String nameFormat = teamState.team.getFormatting().toString() + Formatting.BOLD.toString();
-            String descriptionFormat = Formatting.RESET.toString() + Formatting.GRAY.toString();
+                String name = teamState.team.getDisplay();
+                String description = teamState.getCapturedSheep() + " sheep";
 
-            String name = teamState.team.getDisplay();
-            String description = teamState.getCapturedSheep() + " sheep";
-
-            lines.add("  " + nameFormat + name + ": " + descriptionFormat + description);
+                content.writeLine("  " + nameFormat + name + ": " + descriptionFormat + description);
+            });
         });
-
-        this.sidebar.set(lines.toArray(new String[0]));
     }
 
     private String renderTime(long ticks) {
@@ -104,7 +100,7 @@ public final class FfScoreboard implements AutoCloseable {
 
     @Override
     public void close() {
-        ServerWorld world = this.game.gameWorld.getWorld();
+        ServerWorld world = this.game.gameSpace.getWorld();
         MinecraftServer server = world.getServer();
 
         ServerScoreboard scoreboard = server.getScoreboard();

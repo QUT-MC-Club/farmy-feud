@@ -27,8 +27,16 @@ import xyz.nucleoid.farmyfeud.entity.FarmSheepEntity;
 import xyz.nucleoid.farmyfeud.game.FfConfig;
 import xyz.nucleoid.farmyfeud.game.FfSpawnLogic;
 import xyz.nucleoid.farmyfeud.game.map.FfMap;
-import xyz.nucleoid.plasmid.game.GameWorld;
-import xyz.nucleoid.plasmid.game.event.*;
+import xyz.nucleoid.plasmid.game.GameSpace;
+import xyz.nucleoid.plasmid.game.event.GameCloseListener;
+import xyz.nucleoid.plasmid.game.event.GameOpenListener;
+import xyz.nucleoid.plasmid.game.event.GameTickListener;
+import xyz.nucleoid.plasmid.game.event.HandSwingListener;
+import xyz.nucleoid.plasmid.game.event.OfferPlayerListener;
+import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
+import xyz.nucleoid.plasmid.game.event.PlayerDamageListener;
+import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
+import xyz.nucleoid.plasmid.game.event.UseItemListener;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.game.player.JoinResult;
 import xyz.nucleoid.plasmid.game.rule.GameRule;
@@ -36,9 +44,18 @@ import xyz.nucleoid.plasmid.game.rule.RuleResult;
 import xyz.nucleoid.plasmid.util.BlockBounds;
 import xyz.nucleoid.plasmid.util.ColoredBlocks;
 import xyz.nucleoid.plasmid.util.ItemStackBuilder;
+import xyz.nucleoid.plasmid.widget.GlobalWidgets;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public final class FfActive {
@@ -62,7 +79,7 @@ public final class FfActive {
             .addLore(new LiteralText("Right-click on a sheep to pick it up!"));
 
     public final ServerWorld world;
-    public final GameWorld gameWorld;
+    public final GameSpace gameSpace;
     public final FfConfig config;
 
     public final FfMap map;
@@ -82,27 +99,29 @@ public final class FfActive {
 
     private long closeTime = -1;
 
-    private FfActive(GameWorld gameWorld, FfMap map, FfConfig config) {
-        this.world = gameWorld.getWorld();
-        this.gameWorld = gameWorld;
+    private FfActive(GameSpace gameSpace, FfMap map, FfConfig config, GlobalWidgets widgets) {
+        this.world = gameSpace.getWorld();
+        this.gameSpace = gameSpace;
         this.map = map;
         this.config = config;
 
         this.spawnLogic = new FfSpawnLogic(this.world, this.map);
         this.captureLogic = new FfCaptureLogic(this);
 
-        this.scoreboard = gameWorld.addResource(FfScoreboard.create(this));
-        this.timerBar = gameWorld.addResource(new FfTimerBar(gameWorld));
+        this.scoreboard = FfScoreboard.create(this, widgets);
+        this.timerBar = FfTimerBar.create(widgets);
 
         for (GameTeam team : config.teams) {
             this.teams.put(team, new FfTeamState(team));
         }
     }
 
-    public static void open(GameWorld gameWorld, FfMap map, FfConfig config) {
-        FfActive active = new FfActive(gameWorld, map, config);
+    public static void open(GameSpace gameSpace, FfMap map, FfConfig config) {
+        gameSpace.openGame(game -> {
+            GlobalWidgets widgets = new GlobalWidgets(game);
 
-        gameWorld.openGame(game -> {
+            FfActive active = new FfActive(gameSpace, map, config, widgets);
+
             game.setRule(GameRule.CRAFTING, RuleResult.DENY);
             game.setRule(GameRule.PORTALS, RuleResult.DENY);
             game.setRule(GameRule.PVP, RuleResult.ALLOW);
@@ -160,7 +179,7 @@ public final class FfActive {
 
         if (this.closeTime != -1) {
             if (time >= this.closeTime) {
-                this.gameWorld.close();
+                this.gameSpace.close();
             }
             return;
         }
@@ -414,22 +433,22 @@ public final class FfActive {
                     .append(new LiteralText(" died").formatted(Formatting.GRAY));
         }
 
-        this.gameWorld.getPlayerSet().sendMessage(message);
+        this.gameSpace.getPlayers().sendMessage(message);
 
         this.respawnPlayer(player);
         return ActionResult.FAIL;
     }
 
-    private boolean onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
+    private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
         if (amount < 1.0F) {
-            return false;
+            return ActionResult.PASS;
         }
 
         FfParticipant participant = this.getParticipant(player);
         if (participant != null) {
             FfParticipant attackerParticipant = this.getParticipant(source.getAttacker());
             if (attackerParticipant != null && attackerParticipant.team == participant.team) {
-                return true;
+                return ActionResult.FAIL;
             }
 
             participant.carryStack.dropAll(player);
@@ -437,10 +456,10 @@ public final class FfActive {
 
         if (!player.isSpectator() && source == DamageSource.LAVA) {
             this.respawnPlayer(player);
-            return true;
+            return ActionResult.FAIL;
         }
 
-        return false;
+        return ActionResult.PASS;
     }
 
     private void respawnPlayer(ServerPlayerEntity player) {
@@ -491,7 +510,7 @@ public final class FfActive {
                     .formatted(Formatting.BOLD, Formatting.GRAY);
         }
 
-        this.gameWorld.getPlayerSet().sendMessage(message);
+        this.gameSpace.getPlayers().sendMessage(message);
     }
 
     public Stream<FfParticipant> participants() {
@@ -511,7 +530,7 @@ public final class FfActive {
     }
 
     private Stream<ServerPlayerEntity> playersBy(Stream<UUID> participants) {
-        ServerWorld world = this.gameWorld.getWorld();
+        ServerWorld world = this.gameSpace.getWorld();
         return participants
                 .map(id -> (ServerPlayerEntity) world.getPlayerByUuid(id))
                 .filter(Objects::nonNull);

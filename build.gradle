@@ -23,12 +23,10 @@ dependencies {
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	implementation 'com.google.code.findbugs:jsr305:3.0.1'
-
 	implementation 'kdotjpg:open-simplex:2.0'
 	include 'kdotjpg:open-simplex:2.0'
 
-	modImplementation 'xyz.nucleoid:plasmid:0.3.4'
+	modImplementation 'xyz.nucleoid:plasmid:0.4.0'
 
 	modRuntime ("com.github.SuperCoder7979:databreaker:0.2.6") {
 		exclude module : "fabric-loader"

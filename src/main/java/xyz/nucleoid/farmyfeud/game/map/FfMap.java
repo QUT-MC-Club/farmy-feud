@@ -1,12 +1,11 @@
 package xyz.nucleoid.farmyfeud.game.map;
 
 import net.minecraft.server.MinecraftServer;
-import xyz.nucleoid.plasmid.game.map.template.MapTemplate;
-import xyz.nucleoid.plasmid.game.map.template.TemplateChunkGenerator;
-import xyz.nucleoid.plasmid.game.player.GameTeam;
-import xyz.nucleoid.plasmid.util.BlockBounds;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.ChunkGenerator;
+import xyz.nucleoid.plasmid.game.player.GameTeam;
+import xyz.nucleoid.plasmid.map.template.MapTemplate;
+import xyz.nucleoid.plasmid.map.template.TemplateChunkGenerator;
+import xyz.nucleoid.plasmid.util.BlockBounds;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -54,7 +53,7 @@ public final class FfMap {
     }
 
     public ChunkGenerator createGenerator(MinecraftServer server) {
-        return new TemplateChunkGenerator(server, this.template, BlockPos.ORIGIN);
+        return new TemplateChunkGenerator(server, this.template);
     }
 
     public static class TeamRegions {

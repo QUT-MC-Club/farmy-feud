@@ -33,7 +33,7 @@ public final class EntityRayTrace {
         for (Entity entity : world.getOtherEntities(sourceEntity, testBox, predicate)) {
             Box targetBox = entity.getBoundingBox().expand(Math.max(entity.getTargetingMargin(), margin));
 
-            Optional<Vec3d> traceResult = targetBox.rayTrace(origin, target);
+            Optional<Vec3d> traceResult = targetBox.raycast(origin, target);
             if (targetBox.contains(origin)) {
                 return new EntityHitResult(entity, traceResult.orElse(origin));
             }

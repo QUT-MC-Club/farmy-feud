@@ -5,60 +5,59 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.world.GameMode;
+import xyz.nucleoid.fantasy.BubbleWorldConfig;
 import xyz.nucleoid.farmyfeud.game.active.FfActive;
 import xyz.nucleoid.farmyfeud.game.map.FfMap;
 import xyz.nucleoid.farmyfeud.game.map.FfMapBuilder;
 import xyz.nucleoid.plasmid.game.GameOpenContext;
+import xyz.nucleoid.plasmid.game.GameOpenProcedure;
+import xyz.nucleoid.plasmid.game.GameSpace;
 import xyz.nucleoid.plasmid.game.GameWaitingLobby;
-import xyz.nucleoid.plasmid.game.GameWorld;
 import xyz.nucleoid.plasmid.game.StartResult;
 import xyz.nucleoid.plasmid.game.event.PlayerAddListener;
 import xyz.nucleoid.plasmid.game.event.PlayerDeathListener;
 import xyz.nucleoid.plasmid.game.event.RequestStartListener;
-import xyz.nucleoid.plasmid.world.bubble.BubbleWorldConfig;
-
-import java.util.concurrent.CompletableFuture;
 
 public final class FfWaiting {
     private final ServerWorld world;
-    private final GameWorld gameWorld;
+    private final GameSpace gameSpace;
     private final FfMap map;
     private final FfConfig config;
 
     private final FfSpawnLogic spawnLogic;
 
-    private FfWaiting(GameWorld gameWorld, FfMap map, FfConfig config) {
-        this.world = gameWorld.getWorld();
-        this.gameWorld = gameWorld;
+    private FfWaiting(GameSpace gameSpace, FfMap map, FfConfig config) {
+        this.world = gameSpace.getWorld();
+        this.gameSpace = gameSpace;
         this.map = map;
         this.config = config;
 
         this.spawnLogic = new FfSpawnLogic(this.world, map);
     }
 
-    public static CompletableFuture<GameWorld> open(GameOpenContext<FfConfig> context) {
+    public static GameOpenProcedure open(GameOpenContext<FfConfig> context) {
         FfConfig config = context.getConfig();
 
-        return new FfMapBuilder(config).create().thenCompose(map -> {
-            BubbleWorldConfig worldConfig = new BubbleWorldConfig()
-                    .setGenerator(map.createGenerator(context.getServer()))
-                    .setDefaultGameMode(GameMode.SPECTATOR);
+        FfMap map = new FfMapBuilder(config).create();
 
-            return context.openWorld(worldConfig).thenApply(gameWorld -> {
-                FfWaiting waiting = new FfWaiting(gameWorld, map, config);
+        BubbleWorldConfig worldConfig = new BubbleWorldConfig()
+                .setGenerator(map.createGenerator(context.getServer()))
+                .setDefaultGameMode(GameMode.SPECTATOR);
 
-                return GameWaitingLobby.open(gameWorld, config.players, game -> {
-                    game.on(RequestStartListener.EVENT, waiting::requestStart);
+        return context.createOpenProcedure(worldConfig, game -> {
+            FfWaiting waiting = new FfWaiting(game.getSpace(), map, config);
 
-                    game.on(PlayerAddListener.EVENT, waiting::addPlayer);
-                    game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
-                });
-            });
+            GameWaitingLobby.applyTo(game, config.players);
+
+            game.on(RequestStartListener.EVENT, waiting::requestStart);
+
+            game.on(PlayerAddListener.EVENT, waiting::addPlayer);
+            game.on(PlayerDeathListener.EVENT, waiting::onPlayerDeath);
         });
     }
 
     private StartResult requestStart() {
-        FfActive.open(this.gameWorld, this.map, this.config);
+        FfActive.open(this.gameSpace, this.map, this.config);
         return StartResult.OK;
     }
 
