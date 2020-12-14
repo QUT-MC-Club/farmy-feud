@@ -9,6 +9,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.apache.commons.lang3.RandomStringUtils;
 import xyz.nucleoid.plasmid.game.player.GameTeam;
 import xyz.nucleoid.plasmid.widget.GlobalWidgets;
 import xyz.nucleoid.plasmid.widget.SidebarWidget;
@@ -55,14 +56,11 @@ public final class FfScoreboard implements AutoCloseable {
             ServerWorld world = this.game.gameSpace.getWorld();
             MinecraftServer server = world.getServer();
             ServerScoreboard scoreboard = server.getScoreboard();
-            String teamKey = t.getDisplay();
-            Team scoreboardTeam = scoreboard.getTeam(teamKey);
-            if (scoreboardTeam == null) {
-                scoreboardTeam = scoreboard.addTeam(teamKey);
-                scoreboardTeam.setColor(team.getFormatting());
-                scoreboardTeam.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
-                scoreboardTeam.setFriendlyFireAllowed(false);
-            }
+            Team scoreboardTeam = scoreboard.addTeam(RandomStringUtils.randomAlphanumeric(16));
+            scoreboardTeam.setDisplayName(new LiteralText(t.getDisplay()));
+            scoreboardTeam.setColor(team.getFormatting());
+            scoreboardTeam.setCollisionRule(AbstractTeam.CollisionRule.NEVER);
+            scoreboardTeam.setFriendlyFireAllowed(false);
             return scoreboardTeam;
         });
     }
@@ -105,7 +103,5 @@ public final class FfScoreboard implements AutoCloseable {
 
         ServerScoreboard scoreboard = server.getScoreboard();
         this.scoreboardTeams.values().forEach(scoreboard::removeTeam);
-
-        this.sidebar.close();
     }
 }

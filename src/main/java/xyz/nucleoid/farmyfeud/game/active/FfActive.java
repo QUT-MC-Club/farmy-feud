@@ -108,7 +108,7 @@ public final class FfActive {
         this.spawnLogic = new FfSpawnLogic(this.world, this.map);
         this.captureLogic = new FfCaptureLogic(this);
 
-        this.scoreboard = FfScoreboard.create(this, widgets);
+        this.scoreboard = gameSpace.addResource(FfScoreboard.create(this, widgets));
         this.timerBar = FfTimerBar.create(widgets);
 
         for (GameTeam team : config.teams) {
