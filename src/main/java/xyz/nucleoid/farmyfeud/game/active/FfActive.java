@@ -1,10 +1,10 @@
 package xyz.nucleoid.farmyfeud.game.active;
 
-import net.fabricmc.fabric.api.tool.attribute.v1.FabricToolTags;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.ItemCooldownManager;
+import net.minecraft.item.AxeItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.s2c.play.EntityVelocityUpdateS2CPacket;
@@ -330,7 +330,7 @@ public final class FfActive {
                     return TypedActionResult.consume(heldStack);
                 }
             }
-        } else if (heldStack.isIn(FabricToolTags.AXES)) {
+        } else if (heldStack.getItem() instanceof AxeItem) {
             ItemCooldownManager cooldown = player.getItemCooldownManager();
             if (!cooldown.isCoolingDown(heldStack.getItem())) {
                 FfParticipant participant = this.getParticipant(player);

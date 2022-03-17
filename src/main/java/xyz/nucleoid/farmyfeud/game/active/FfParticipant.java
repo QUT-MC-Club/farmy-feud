@@ -18,7 +18,7 @@ public final class FfParticipant {
     private long respawnTime = -1;
 
     FfParticipant(ServerPlayerEntity player, GameTeamKey team) {
-        this.world = player.getServerWorld();
+        this.world = player.getWorld();
         this.playerId = player.getUuid();
         this.team = team;
     }
