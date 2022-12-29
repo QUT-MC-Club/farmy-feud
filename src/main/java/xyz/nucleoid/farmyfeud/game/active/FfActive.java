@@ -558,7 +558,7 @@ public final class FfActive {
             teamState.addParticipant(uuid);
             this.teamManager.addPlayerTo(player, teamState.team);
 
-            return new FfParticipant(player, teamState.team);
+            return new FfParticipant(this.gameSpace, player, teamState.team);
         });
     }
 
