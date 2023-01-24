@@ -6,7 +6,23 @@
     "id": "player_head",
     "Count": 1,
     "tag": {
-      "SkullOwner": "MHF_Sheep"
+      "SkullOwner": {
+        "Id": [
+          -542452399,
+          1316898209,
+          -1493711108,
+          1590174636
+        ],
+        "Name": "MHF_Sheep",
+        "Properties": {
+          "textures": [
+            {
+              "Signature": "XMnASzPMSPwUg/IRvz3CngfbtcSj3fU0Z67r7B1h8sd1DphEW97uyvg0RhlhT9ybwcPq5XTWpGg30p6ewFOMo2CsBKjSbubRC3k8ydboShmf7Q5AzRghepS3UIHCYnz+NtnBaMQSxpkV+hI7YmL544g9W2NjVrgLPfgofrQldlVy3ujBA3/tb1pvOKNrb5Vblmx8XG4DtRfyLDnFS8aSuPcR03rmFRIXXNWd8Dv/8DcOezHjl5bg2sqedsS6Ymdb5yWuhDsAdqM9E2kc0KtiwDQNbTGTGvSEx7E3bnboiov38rAGBCsKOI2xV4vBTjffeT2utrdGRVQuP4x68iO3sDAd3oPR0SyWPfx6MYIJ1KkhU0kvPGjJ58TRdtpu7WWAgZqSq09Lixafjj2Rlhwy7q6XLoi7Ki+1VaJ+ZtFNzMshZ0nV9g54n9L8ebl79eguI1CqZFe9l6lmXheBDyUjivVvNU0go8NZMJzMSVqtEa3AAbMlWUgQjOwVDbKSoEkbVF8N8MzAZ5xQb8Gp2TPB+6jjP8UEDdxjYAlSEsY4emSjpAYq99VtzuH1AY/lGF1M5uVR/bvSqq99qKk+gYb14F1a5eQ/RHdkxT/cd95V+L7JNZ2JDuAJWRdD6isHaAXGtRu7Kt2hXKHOL5IfIQ4WgUfUqvcAjYStYQbqZ8p8fOA=",
+              "Value": "ewogICJ0aW1lc3RhbXAiIDogMTY3NDU5MTUwNzM4MCwKICAicHJvZmlsZUlkIiA6ICJkZmFhZDU1MTRlN2U0NWExYTZmN2M2ZmM1ZWM4MjNhYyIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfU2hlZXAiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvN2NhMzhjY2Y0MTdlOTljYTlkNDdlZWIxNWE4YTMwZWRiMTUwN2FhNTJiNjc4YzIyMGM3MTdjNDc0YWE2ZmUzZSIKICAgIH0KICB9Cn0="
+            }
+          ]
+        }
+      }
     }
   },
   "players": {
