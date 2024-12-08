@@ -3,8 +3,8 @@ package xyz.nucleoid.farmyfeud.game.active;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.farmyfeud.entity.FarmSheepEntity;
-import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.api.game.GameSpace;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
 
 import java.util.UUID;
 

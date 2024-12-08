@@ -17,7 +17,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -29,15 +28,17 @@ import xyz.nucleoid.farmyfeud.game.FfConfig;
 import xyz.nucleoid.farmyfeud.game.FfSpawnLogic;
 import xyz.nucleoid.farmyfeud.game.map.FfMap;
 import xyz.nucleoid.map_templates.BlockBounds;
-import xyz.nucleoid.plasmid.game.GameCloseReason;
-import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.common.GlobalWidgets;
-import xyz.nucleoid.plasmid.game.common.team.*;
-import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
-import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
-import xyz.nucleoid.plasmid.game.rule.GameRuleType;
-import xyz.nucleoid.plasmid.util.ColoredBlocks;
-import xyz.nucleoid.plasmid.util.ItemStackBuilder;
+import xyz.nucleoid.plasmid.api.game.GameCloseReason;
+import xyz.nucleoid.plasmid.api.game.GameSpace;
+import xyz.nucleoid.plasmid.api.game.common.GlobalWidgets;
+import xyz.nucleoid.plasmid.api.game.common.team.*;
+import xyz.nucleoid.plasmid.api.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.api.game.player.JoinOffer;
+import xyz.nucleoid.plasmid.api.game.rule.GameRuleType;
+import xyz.nucleoid.plasmid.api.util.ColoredBlocks;
+import xyz.nucleoid.plasmid.api.util.ItemStackBuilder;
+import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.item.ItemUseEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDamageEvent;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
@@ -116,29 +117,32 @@ public final class FfActive {
         }
     }
 
-    public static void open(GameSpace gameSpace, ServerWorld world, FfMap map, FfConfig config) {
+    public static void open(GameSpace gameSpace, ServerWorld world, FfMap map, FfConfig config, TeamSelectionLobby teamSelection) {
         gameSpace.setActivity(game -> {
             GlobalWidgets widgets = GlobalWidgets.addTo(game);
 
             var teamManager = TeamManager.addTo(game);
 
             FfActive active = new FfActive(gameSpace, world, map, config, teamManager, widgets);
+            teamSelection.allocate(gameSpace.getPlayers().participants(), (gameTeamKey, player) -> teamManager.addPlayerTo(player, gameTeamKey));
 
-            game.setRule(GameRuleType.CRAFTING, ActionResult.FAIL);
-            game.setRule(GameRuleType.PORTALS, ActionResult.FAIL);
-            game.setRule(GameRuleType.PVP, ActionResult.SUCCESS);
-            game.setRule(GameRuleType.FALL_DAMAGE, ActionResult.SUCCESS);
-            game.setRule(GameRuleType.BLOCK_DROPS, ActionResult.FAIL);
-            game.setRule(GameRuleType.HUNGER, ActionResult.FAIL);
-            game.setRule(GameRuleType.SATURATED_REGENERATION, ActionResult.FAIL);
-            game.setRule(GameRuleType.THROW_ITEMS, ActionResult.FAIL);
+            game.setRule(GameRuleType.CRAFTING, EventResult.DENY);
+            game.setRule(GameRuleType.PORTALS, EventResult.DENY);
+            game.setRule(GameRuleType.PVP, EventResult.ALLOW);
+            game.setRule(GameRuleType.FALL_DAMAGE, EventResult.ALLOW);
+            game.setRule(GameRuleType.BLOCK_DROPS, EventResult.DENY);
+            game.setRule(GameRuleType.HUNGER, EventResult.DENY);
+            game.setRule(GameRuleType.SATURATED_REGENERATION, EventResult.DENY);
+            game.setRule(GameRuleType.THROW_ITEMS, EventResult.DENY);
 
             TeamChat.addTo(game, teamManager);
 
             game.listen(GameActivityEvents.ENABLE, active::open);
             game.listen(GameActivityEvents.DISABLE, active::close);
+            game.listen(GameActivityEvents.STATE_UPDATE, state -> state.canPlay(false));
 
-            game.listen(GamePlayerEvents.OFFER, player -> player.accept(world, map.getCenterSpawn() != null ? map.getCenterSpawn().center() : new Vec3d(0, 256, 0)));
+            game.listen(GamePlayerEvents.OFFER, JoinOffer::acceptSpectators);
+            game.listen(GamePlayerEvents.ACCEPT, player -> player.teleport(world, map.getCenterSpawn() != null ? map.getCenterSpawn().center() : new Vec3d(0, 256, 0)));
             game.listen(GamePlayerEvents.ADD, active::addPlayer);
 
             game.listen(GameActivityEvents.TICK, active::tick);
@@ -158,7 +162,7 @@ public final class FfActive {
         this.initNextSpawnTime(time);
         this.initNextArrowTime(time);
 
-        int sheepCount = (this.config.teams().size() * 3) / 2;
+        int sheepCount = (this.config.teams().list().size() * 3) / 2;
         for (int i = 0; i < sheepCount; i++) {
             this.spawnSheep();
         }
@@ -174,8 +178,13 @@ public final class FfActive {
     }
 
     private void addPlayer(ServerPlayerEntity player) {
-        FfParticipant participant = this.getOrCreateParticipant(player);
-        this.spawnParticipant(player, participant);
+        if (this.gameSpace.getPlayers().participants().contains(player)) {
+            FfParticipant participant = this.getOrCreateParticipant(player);
+            this.spawnParticipant(player, participant);
+        } else {
+            this.spawnLogic.spawnPlayerAtCenter(player);
+            this.spawnLogic.resetPlayer(player, GameMode.SPECTATOR);
+        }
     }
 
     private void tick() {
@@ -316,7 +325,7 @@ public final class FfActive {
         }
     }
 
-    private TypedActionResult<ItemStack> onUseItem(ServerPlayerEntity player, Hand hand) {
+    private ActionResult onUseItem(ServerPlayerEntity player, Hand hand) {
         ItemStack heldStack = player.getStackInHand(hand);
 
         if (heldStack.getItem() == Items.SADDLE) {
@@ -328,12 +337,12 @@ public final class FfActive {
 
                 if (traceResult != null) {
                     this.tryPickUpSheep(player, participant, (FarmSheepEntity) traceResult.getEntity());
-                    return TypedActionResult.consume(heldStack);
+                    return ActionResult.CONSUME;
                 }
             }
         } else if (heldStack.getItem() instanceof AxeItem) {
             ItemCooldownManager cooldown = player.getItemCooldownManager();
-            if (!cooldown.isCoolingDown(heldStack.getItem())) {
+            if (!cooldown.isCoolingDown(heldStack)) {
                 FfParticipant participant = this.getParticipant(player);
                 if (participant != null) {
                     Vec3d rotationVec = player.getRotationVec(1.0F);
@@ -341,12 +350,12 @@ public final class FfActive {
                     player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
 
                     player.playSound(SoundEvents.ENTITY_HORSE_SADDLE, 1.0F, 1.0F);
-                    cooldown.set(heldStack.getItem(), LEAP_INTERVAL_TICKS);
+                    cooldown.set(heldStack, LEAP_INTERVAL_TICKS);
                 }
             }
         }
 
-        return TypedActionResult.pass(ItemStack.EMPTY);
+        return ActionResult.PASS;
     }
 
     public boolean tryPickUpSheep(ServerPlayerEntity player, FfParticipant participant, FarmSheepEntity sheep) {
@@ -426,7 +435,7 @@ public final class FfActive {
         }
     }
 
-    private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+    private EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
         MutableText message;
 
         Entity attackerEntity = source.getAttacker();
@@ -442,19 +451,19 @@ public final class FfActive {
         this.gameSpace.getPlayers().sendMessage(message);
 
         this.respawnPlayer(player);
-        return ActionResult.FAIL;
+        return EventResult.DENY;
     }
 
-    private ActionResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
+    private EventResult onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
         if (amount < 1.0F) {
-            return ActionResult.PASS;
+            return EventResult.PASS;
         }
 
         FfParticipant participant = this.getParticipant(player);
         if (participant != null) {
             FfParticipant attackerParticipant = this.getParticipant(source.getAttacker());
             if (attackerParticipant != null && attackerParticipant.team == participant.team) {
-                return ActionResult.FAIL;
+                return EventResult.DENY;
             }
 
             participant.carryStack.dropAll(player);
@@ -462,10 +471,10 @@ public final class FfActive {
 
         if (!player.isSpectator() && source.isOf(DamageTypes.LAVA)) {
             this.respawnPlayer(player);
-            return ActionResult.FAIL;
+            return EventResult.DENY;
         }
 
-        return ActionResult.PASS;
+        return EventResult.PASS;
     }
 
     private void respawnPlayer(ServerPlayerEntity player) {
@@ -555,7 +564,7 @@ public final class FfActive {
 
     private FfParticipant getOrCreateParticipant(ServerPlayerEntity player) {
         return this.participants.computeIfAbsent(player.getUuid(), uuid -> {
-            FfTeamState teamState = this.getSmallestTeam();
+            FfTeamState teamState = this.teams.get(this.teamManager.teamFor(player));
 
             teamState.addParticipant(uuid);
             this.teamManager.addPlayerTo(player, teamState.team);
@@ -570,15 +579,6 @@ public final class FfActive {
             return null;
         }
         return this.participants.get(entity.getUuid());
-    }
-
-    private FfTeamState getSmallestTeam() {
-        List<FfTeamState> teams = new ArrayList<>(this.teams.values());
-        Collections.shuffle(teams);
-
-        return teams.stream()
-                .min(Comparator.comparingInt(FfTeamState::getParticipantCount))
-                .orElseThrow(() -> new IllegalStateException("no teams present!"));
     }
 
     private record WinResult(@Nullable GameTeamKey winningTeam, boolean win) {

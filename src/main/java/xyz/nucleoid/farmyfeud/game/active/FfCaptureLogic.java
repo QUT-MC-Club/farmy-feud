@@ -1,5 +1,6 @@
 package xyz.nucleoid.farmyfeud.game.active;
 
+import net.minecraft.component.type.FireworkExplosionComponent;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.FireworkRocketEntity;
 import net.minecraft.item.FireworkRocketItem;
@@ -10,9 +11,9 @@ import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.farmyfeud.entity.FarmSheepEntity;
 import xyz.nucleoid.farmyfeud.game.map.FfMap;
 import xyz.nucleoid.map_templates.BlockBounds;
-import xyz.nucleoid.plasmid.game.common.team.GameTeam;
-import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
-import xyz.nucleoid.plasmid.util.ItemStackBuilder;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeam;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.api.util.ItemStackBuilder;
 
 record FfCaptureLogic(FfActive game) {
 
@@ -57,7 +58,7 @@ record FfCaptureLogic(FfActive game) {
 
         int flight = world.random.nextInt(3);
 
-        FireworkRocketItem.Type type = world.random.nextInt(4) == 0 ? FireworkRocketItem.Type.STAR : FireworkRocketItem.Type.BURST;
+        var type = world.random.nextInt(4) == 0 ? FireworkExplosionComponent.Type.STAR : FireworkExplosionComponent.Type.BURST;
         FireworkRocketEntity firework = new FireworkRocketEntity(
                 world,
                 entity.getX(),

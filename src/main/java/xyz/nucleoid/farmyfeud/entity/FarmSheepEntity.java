@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import xyz.nucleoid.farmyfeud.game.active.FfActive;
 import xyz.nucleoid.map_templates.BlockBounds;
-import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
 
 import java.util.EnumSet;
 
@@ -81,8 +81,8 @@ public final class FarmSheepEntity extends SheepEntity {
 
     public void teleportWithPoof(double x, double y, double z) {
         if (this.getWorld() instanceof ServerWorld world) {
-            var colorComponents = this.getColor().getColorComponents();
-            var particle = new DustParticleEffect(new Vector3f(colorComponents), 2f);
+            var colorComponents = this.getColor().getEntityColor();
+            var particle = new DustParticleEffect(colorComponents, 2f);
 
             for (int i = 0; i < 20; i++) {
                 double deltaX = this.random.nextGaussian() * 0.02;
@@ -93,7 +93,7 @@ public final class FarmSheepEntity extends SheepEntity {
             }
         }
 
-        this.teleport(x, y, z);
+        this.teleport(x, y, z, false);
     }
 
     @Nullable
@@ -120,7 +120,7 @@ public final class FarmSheepEntity extends SheepEntity {
     }
 
     @Override
-    protected void mobTick() {
+    protected void mobTick(ServerWorld world) {
         this.game.tickSheep(this);
 
         if (this.home != null) {
@@ -137,13 +137,13 @@ public final class FarmSheepEntity extends SheepEntity {
     }
 
     @Override
-    public boolean damage(DamageSource source, float amount) {
+    public boolean damage(ServerWorld world, DamageSource source, float amount) {
         Entity vehicle = this.getVehicle();
         if (vehicle != null && source.getSource() != null) {
-            return vehicle.damage(source, amount);
+            return vehicle.damage(world, source, amount);
         }
 
-        return super.damage(source, amount);
+        return super.damage(world, source, amount);
     }
 
     @Override

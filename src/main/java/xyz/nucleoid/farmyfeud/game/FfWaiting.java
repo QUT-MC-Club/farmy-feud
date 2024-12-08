@@ -3,20 +3,22 @@ package xyz.nucleoid.farmyfeud.game;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.farmyfeud.game.active.FfActive;
 import xyz.nucleoid.farmyfeud.game.map.FfMap;
 import xyz.nucleoid.farmyfeud.game.map.FfMapBuilder;
-import xyz.nucleoid.plasmid.game.GameOpenContext;
-import xyz.nucleoid.plasmid.game.GameOpenProcedure;
-import xyz.nucleoid.plasmid.game.GameResult;
-import xyz.nucleoid.plasmid.game.GameSpace;
-import xyz.nucleoid.plasmid.game.common.GameWaitingLobby;
-import xyz.nucleoid.plasmid.game.event.GameActivityEvents;
-import xyz.nucleoid.plasmid.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.api.game.GameOpenContext;
+import xyz.nucleoid.plasmid.api.game.GameOpenProcedure;
+import xyz.nucleoid.plasmid.api.game.GameResult;
+import xyz.nucleoid.plasmid.api.game.GameSpace;
+import xyz.nucleoid.plasmid.api.game.common.GameWaitingLobby;
+import xyz.nucleoid.plasmid.api.game.common.team.TeamSelectionLobby;
+import xyz.nucleoid.plasmid.api.game.event.GameActivityEvents;
+import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
+import xyz.nucleoid.plasmid.api.game.player.JoinOffer;
+import xyz.nucleoid.stimuli.event.EventResult;
 import xyz.nucleoid.stimuli.event.player.PlayerDeathEvent;
 
 public final class FfWaiting {
@@ -26,12 +28,14 @@ public final class FfWaiting {
     private final FfConfig config;
 
     private final FfSpawnLogic spawnLogic;
+    private final TeamSelectionLobby teamSelection;
 
-    private FfWaiting(GameSpace gameSpace, ServerWorld world, FfMap map, FfConfig config) {
+    private FfWaiting(GameSpace gameSpace, ServerWorld world, FfMap map, FfConfig config, TeamSelectionLobby teamSelection) {
         this.world = world;
         this.gameSpace = gameSpace;
         this.map = map;
         this.config = config;
+        this.teamSelection = teamSelection;
 
         this.spawnLogic = new FfSpawnLogic(this.world, map);
     }
@@ -45,10 +49,12 @@ public final class FfWaiting {
                 .setGenerator(map.createGenerator(context.server()));
 
         return context.openWithWorld(worldConfig, (game, world) -> {
-            FfWaiting waiting = new FfWaiting(game.getGameSpace(), world, map, config);
-
+            var teamSelection = TeamSelectionLobby.addTo(game, config.teams());
             GameWaitingLobby.addTo(game, config.players());
-            game.listen(GamePlayerEvents.OFFER, player -> player.accept(world, map.getCenterSpawn() != null ? map.getCenterSpawn().center() : new Vec3d(0, 256, 0)));
+            FfWaiting waiting = new FfWaiting(game.getGameSpace(), world, map, config, teamSelection);
+
+            game.listen(GamePlayerEvents.OFFER, JoinOffer::accept);
+            game.listen(GamePlayerEvents.ACCEPT, player -> player.teleport(world, map.getCenterSpawn() != null ? map.getCenterSpawn().center() : new Vec3d(0, 256, 0)));
             game.listen(GameActivityEvents.REQUEST_START, waiting::requestStart);
             game.listen(GamePlayerEvents.ADD, waiting::addPlayer);
             game.listen(PlayerDeathEvent.EVENT, waiting::onPlayerDeath);
@@ -56,7 +62,7 @@ public final class FfWaiting {
     }
 
     private GameResult requestStart() {
-        FfActive.open(this.gameSpace, this.world, this.map, this.config);
+        FfActive.open(this.gameSpace, this.world, this.map, this.config, this.teamSelection);
         return GameResult.ok();
     }
 
@@ -64,9 +70,9 @@ public final class FfWaiting {
         this.spawnPlayer(player);
     }
 
-    private ActionResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
+    private EventResult onPlayerDeath(ServerPlayerEntity player, DamageSource source) {
         this.spawnPlayer(player);
-        return ActionResult.FAIL;
+        return EventResult.DENY;
     }
 
     private void spawnPlayer(ServerPlayerEntity player) {

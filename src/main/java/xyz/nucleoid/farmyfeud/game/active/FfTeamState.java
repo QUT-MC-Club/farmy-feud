@@ -1,6 +1,6 @@
 package xyz.nucleoid.farmyfeud.game.active;
 
-import xyz.nucleoid.plasmid.game.common.team.GameTeamKey;
+import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
 
 import java.util.HashSet;
 import java.util.Set;

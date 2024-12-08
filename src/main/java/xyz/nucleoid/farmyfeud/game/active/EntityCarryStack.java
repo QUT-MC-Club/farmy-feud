@@ -6,6 +6,8 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.network.packet.s2c.play.EntityPassengersSetS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
+import xyz.nucleoid.farmyfeud.FarmyFeud;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 public final class EntityCarryStack<T extends Entity> {
-    private static final UUID SLOW_MODIFIER_ID = UUID.fromString("19462f6a-7346-4e27-846f-68864be3ddcb");
+    private static final Identifier SLOW_MODIFIER_ID = Identifier.of(FarmyFeud.ID, "stack_slowness");
 
     private final int maximumHeight;
     private final List<T> stack = new ArrayList<>();
@@ -64,7 +66,7 @@ public final class EntityCarryStack<T extends Entity> {
     private void onStackChange(ServerPlayerEntity player) {
         player.networkHandler.sendPacket(new EntityPassengersSetS2CPacket(player));
 
-        EntityAttributeInstance attribute = player.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+        EntityAttributeInstance attribute = player.getAttributeInstance(EntityAttributes.MOVEMENT_SPEED);
         if (attribute == null) {
             return;
         }
@@ -76,8 +78,8 @@ public final class EntityCarryStack<T extends Entity> {
             double targetValue = baseValue / (this.stack.size() * 0.3 + 1);
 
             EntityAttributeModifier modifier = new EntityAttributeModifier(
-                    SLOW_MODIFIER_ID, "carry slow",
-                    targetValue - baseValue, EntityAttributeModifier.Operation.ADDITION
+                    SLOW_MODIFIER_ID,
+                    targetValue - baseValue, EntityAttributeModifier.Operation.ADD_VALUE
             );
 
             attribute.addTemporaryModifier(modifier);

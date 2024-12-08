@@ -12,7 +12,7 @@
   },
   "depends": {
     "fabric": "*",
-    "minecraft": ">=1.19.3",
-    "plasmid": "0.5.x"
+    "minecraft": ">=1.20.4",
+    "plasmid": "0.6.x"
   }
 }
