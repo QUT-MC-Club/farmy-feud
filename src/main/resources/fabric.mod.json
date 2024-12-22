@@ -10,6 +10,9 @@
   "entrypoints": {
     "main": ["xyz.nucleoid.farmyfeud.FarmyFeud"]
   },
+  "mixins": [
+    "farmyfeud.mixins.json"
+  ],
   "depends": {
     "fabric": "*",
     "minecraft": ">=1.20.4",
