@@ -320,7 +320,7 @@ public final class FfActive {
                 List<FarmSheepEntity> entities = participant.carryStack.dropAll(player);
                 this.throwEntities(player, entities, 1.0);
 
-                player.playSound(SoundEvents.ENTITY_HORSE_SADDLE, 1.0F, 1.0F);
+                player.playSound(SoundEvents.ENTITY_HORSE_SADDLE.value(), 1.0F, 1.0F);
             }
         }
     }
@@ -349,7 +349,7 @@ public final class FfActive {
                     player.setVelocity(rotationVec.multiply(LEAP_VELOCITY));
                     player.networkHandler.sendPacket(new EntityVelocityUpdateS2CPacket(player));
 
-                    player.playSound(SoundEvents.ENTITY_HORSE_SADDLE, 1.0F, 1.0F);
+                    player.playSound(SoundEvents.ENTITY_HORSE_SADDLE.value(), 1.0F, 1.0F);
                     cooldown.set(heldStack, LEAP_INTERVAL_TICKS);
                 }
             }
