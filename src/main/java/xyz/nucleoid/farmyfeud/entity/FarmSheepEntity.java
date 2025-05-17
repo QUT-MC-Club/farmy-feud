@@ -29,7 +29,7 @@ import xyz.nucleoid.plasmid.api.game.common.team.GameTeamKey;
 
 import java.util.EnumSet;
 
-public final class FarmSheepEntity extends SheepEntity implements Carriable {
+public class FarmSheepEntity extends SheepEntity implements Carriable {
     private final FfActive game;
     private GameTeamKey ownerTeam;
     private BlockBounds home;
