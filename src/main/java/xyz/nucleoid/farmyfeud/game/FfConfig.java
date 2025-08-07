@@ -21,7 +21,7 @@ public record FfConfig(Identifier map, WaitingLobbyConfig players,
                 GameTeamList.CODEC.fieldOf("teams").forGetter(config -> config.teams),
                 Codec.LONG.optionalFieldOf("game_duration", 60L * 8 * 20).forGetter(config -> config.gameDuration),
                 Codec.LONG.optionalFieldOf("spawn_interval", 30L * 30).forGetter(config -> config.spawnInterval),
-                Codec.floatRange(0, 1).optionalFieldOf("mega_sheep_spawn_chance", 0.01F).forGetter(config -> config.megaSheepSpawnChance),
+                Codec.floatRange(0, 1).optionalFieldOf("mega_sheep_spawn_chance", 0.10F).forGetter(config -> config.megaSheepSpawnChance),
                 Codec.INT.optionalFieldOf("max_arrows", 3).forGetter(config -> config.maxArrows),
                 Codec.LONG.optionalFieldOf("arrow_interval", 20L * 10).forGetter(config -> config.arrowInterval)
         ).apply(instance, FfConfig::new);
